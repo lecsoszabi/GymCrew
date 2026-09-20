@@ -20,12 +20,15 @@ export default function LoginForm() {
   const [password, setPassword] = useState("");
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [info, setInfo] = useState<string | null>(null);
+  // Ha a regisztrációhoz e-mail megerősítés kell, erre a képernyőre váltunk.
+  const [sentTo, setSentTo] = useState<string | null>(null);
+
+  // A megerősítő link lejárt vagy már elhasználódott.
+  const linkFailed = params.get("error") === "auth";
 
   async function onSubmit(e: React.FormEvent) {
     e.preventDefault();
     setError(null);
-    setInfo(null);
     setBusy(true);
 
     const supabase = createClient();
@@ -46,7 +49,7 @@ export default function LoginForm() {
         if (error) throw error;
 
         if (!data.session) {
-          setInfo("Elküldtünk egy megerősítő e-mailt. Kattints a linkre, aztán jöhet a belépés.");
+          setSentTo(email.trim());
           setBusy(false);
           return;
         }
@@ -66,8 +69,47 @@ export default function LoginForm() {
     }
   }
 
+  if (sentTo) {
+    return (
+      <div className="card animate-fade-up p-6 text-center">
+        <div className="mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-2xl bg-accent/12">
+          <svg viewBox="0 0 24 24" className="h-7 w-7 text-accent" fill="none" stroke="currentColor" strokeWidth="1.7">
+            <rect x="2.5" y="5" width="19" height="14" rx="2.5" />
+            <path d="m3.5 7 8.5 6 8.5-6" strokeLinecap="round" />
+          </svg>
+        </div>
+        <h2 className="text-lg font-bold tracking-tight">Nézd meg a postádat</h2>
+        <p className="mx-auto mt-2 max-w-xs text-sm leading-relaxed text-muted">
+          Küldtünk egy megerősítő linket ide:
+        </p>
+        <p className="mt-1.5 break-all text-sm font-semibold text-accent">{sentTo}</p>
+        <p className="mx-auto mt-4 max-w-xs text-xs leading-relaxed text-muted">
+          Kattints rá, és egyből bent is vagy — nem kell újra beírnod a jelszavad.
+          Ha pár percen belül nem jön meg, nézd meg a spam mappát.
+        </p>
+        <button
+          className="btn btn-ghost mt-5 w-full"
+          onClick={() => {
+            setSentTo(null);
+            setMode("signin");
+            setPassword("");
+          }}
+        >
+          Vissza a belépéshez
+        </button>
+      </div>
+    );
+  }
+
   return (
     <div className="card p-5 animate-fade-up">
+      {linkFailed && (
+        <p role="alert" className="mb-4 rounded-lg bg-maybe/10 px-3 py-2.5 text-sm leading-relaxed text-maybe">
+          A megerősítő link lejárt vagy már fel lett használva. Lépj be, vagy
+          regisztrálj újra ugyanazzal a címmel.
+        </p>
+      )}
+
       <div className="mb-5 grid grid-cols-2 gap-1 rounded-xl bg-surface-2 p-1">
         {(["signin", "signup"] as Mode[]).map((m) => (
           <button
@@ -76,7 +118,6 @@ export default function LoginForm() {
             onClick={() => {
               setMode(m);
               setError(null);
-              setInfo(null);
             }}
             className={`rounded-lg py-2.5 text-sm font-semibold transition ${
               mode === m ? "bg-accent text-ink" : "text-muted hover:text-fg"
@@ -141,11 +182,6 @@ export default function LoginForm() {
         {error && (
           <p role="alert" className="rounded-lg bg-no/10 px-3 py-2.5 text-sm text-no">
             {error}
-          </p>
-        )}
-        {info && (
-          <p role="status" className="rounded-lg bg-accent/10 px-3 py-2.5 text-sm text-accent">
-            {info}
           </p>
         )}
 

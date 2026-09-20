@@ -1,6 +1,23 @@
 # E-mail sablonok
 
-Az app arculatához igazított levelek. Beállítás:
+Az app arculatához igazított levelek.
+
+## ⚠️ Saját SMTP kell hozzá
+
+A Supabase **csak saját SMTP beállítása után** engedi szerkeszteni a sablonokat —
+addig a beépített, angol nyelvű gyári levelek mennek ki, és a szerkesztő mezői
+csak olvashatók. Ez náluk szándékos: a közös levélküldőjükről különben bárki
+küldhetne arculatos leveleket, ami adathalászatra hívna.
+
+A beépített küldő ráadásul óránként pár levélre van korlátozva, és nem éles
+használatra való — SMTP tehát előbb-utóbb úgyis kell.
+
+**Ingyenes lehetőségek:** Resend (3000 levél/hó), Brevo (300/nap), Mailgun, SendGrid.
+Resend esetén: `smtp.resend.com`, 465-ös port, felhasználó `resend`, jelszó az API kulcs.
+Saját, igazolt domain nélkül a Resend csak a saját címedre enged küldeni.
+
+## Beállítás (ha megvan az SMTP)
+
 **Supabase Dashboard → Authentication → Emails** → a megfelelő fül → a HTML beillesztése.
 
 | Fájl | Supabase sablon | Tárgy |
