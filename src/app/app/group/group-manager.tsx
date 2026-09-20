@@ -58,6 +58,26 @@ export default function GroupManager({
     }
   }
 
+  /** Telefonon a natív megosztóval megy (WhatsApp, Messenger, SMS…). */
+  async function shareCode() {
+    const szoveg =
+      `Gyere a(z) "${group.name}" csapatba a GymCrew-n! ` +
+      `Meghívókód: ${group.inviteCode}`;
+    // A natív megosztó nincs meg minden böngészőben — ott vágólapra tesszük.
+    const vanMegosztas = typeof navigator.share === "function";
+    try {
+      if (vanMegosztas) {
+        await navigator.share({ title: "GymCrew meghívó", text: szoveg });
+        return;
+      }
+      await navigator.clipboard.writeText(szoveg);
+      setCopied(true);
+      setTimeout(() => setCopied(false), 1800);
+    } catch {
+      /* a megosztást a felhasználó megszakíthatja — nincs teendő */
+    }
+  }
+
   return (
     <div className="space-y-7">
       <header>
@@ -98,6 +118,14 @@ export default function GroupManager({
             <path d="M5 15V5a2 2 0 0 1 2-2h8" />
           </svg>
         </button>
+
+        <button className="btn btn-primary mt-2 w-full" onClick={shareCode}>
+          Kód küldése
+        </button>
+        <p className="mt-2 text-center text-[11px] leading-relaxed text-muted">
+          Ez a leggyorsabb út: küldd el a kódot üzenetben. Aki megkapja,
+          a „Belépés kóddal" fülön beírja, és bent is van.
+        </p>
       </section>
 
       {/* --- Terem ------------------------------------------------------ */}
@@ -172,7 +200,7 @@ export default function GroupManager({
       {/* --- Meghívás --------------------------------------------------- */}
       {isOwner && (
         <section>
-          <SectionTitle>Meghívás e-mailben</SectionTitle>
+          <SectionTitle>Cím előjegyzése</SectionTitle>
           <div className="card space-y-3 p-5">
             <div className="flex gap-2">
               <input
@@ -193,8 +221,10 @@ export default function GroupManager({
               </button>
             </div>
             <p className="text-xs leading-relaxed text-muted">
-              A meghívott a saját e-mail címével regisztrálva rögtön látja a meghívót.
-              Gyorsabb út: küldd el neki a fenti 6 jegyű kódot.
+              <strong className="text-fg">Innen nem megy ki levél.</strong> Ez csak
+              előjegyzi a címet: aki ezzel az e-maillel regisztrál vagy belép, a
+              kezdőképernyőn ott találja a meghívót, és egy kattintással beléphet —
+              kód nélkül is.
             </p>
 
             {invites.length > 0 && (
