@@ -95,6 +95,16 @@ gh repo create gymcrew-szeged --private --source=. --push
 2. **Environment Variables**: vidd be ugyanazt a három értéket, mint a
    `.env.local`-ban. A `NEXT_PUBLIC_SITE_URL` a végleges címed legyen.
 3. **Deploy**
+
+> **Két buktató, amibe mi is belefutottunk:**
+>
+> - A `NEXT_PUBLIC_` kezdetű változók a **build során égnek bele** a kódba.
+>   Ha utólag adod hozzá őket, **újra kell deployolni** — enélkül az app
+>   továbbra is a „Még nincs beállítva a Supabase" képernyőt mutatja, és azt
+>   hinnéd, rossz az érték.
+> - Ellenőrizd a **Settings → Git** alatt, hogy a projekt tényleg ehhez a
+>   repóhoz van kötve. Ha a Vercel importáláskor külön repót hozott létre,
+>   az egy pillanatképet deployol, és a későbbi munkád soha nem kerül ki.
 4. Supabase → **Authentication → URL Configuration**: a *Site URL* és a
    *Redirect URLs* közé vedd fel a Vercel-címedet és a sajátodat is
    (`https://sajatdomain.hu/auth/callback`)
