@@ -16,14 +16,29 @@ Amíg üres a válasz, várni kell.
 
 ## 1. Hová kerüljenek a rekordok?
 
-A legegyszerűbb, ha a domain névszervereit a **Vercelre** állítod, és onnantól
-minden DNS-rekordot ott kezelsz — a weboldalét és a levelezését is egy helyen.
+A domain **Rackhoston** van. A rekordok mindig oda mennek, ahol a DNS-zónát
+kezeled — két lehetőség:
 
-- Vercel → a `gymcrew` projekt → **Settings → Domains → Add** → `gymcrew.hu`
-- A Vercel kiírja, milyen névszervereket állíts be a domain szolgáltatódnál
-- Amint a delegálás él, a Vercel **DNS Records** fülén vidd be az alábbiakat
+### A) DNS marad Rackhoston — *ajánlott*
 
-Ha inkább a szolgáltatódnál maradsz, ugyanezek a rekordok oda kerülnek.
+Rackhost ügyfélfiók → a domain → **DNS beállítások / DNS zóna szerkesztése**.
+Ide kerül mind a hat rekord: a Resend négy rekordja (lentebb) **és** a
+weboldalhoz tartozó kettő:
+
+| Típus | Név | Tartalom | Mire jó |
+|---|---|---|---|
+| `A` | `@` (vagy üres) | `76.76.21.21` | maga az oldal |
+| `CNAME` | `www` | `cname.vercel-dns.com` | www-s változat |
+
+> A Vercel a pontos értékeket kiírja, amikor a projektnél hozzáadod a domaint
+> (**Settings → Domains → Add**). Ha eltér a fentitől, **a Vercel kiírását
+> kövesd** — ezek az értékek időnként változnak.
+
+### B) Névszerverek átállítása a Vercelre
+
+Rackhoston csak a névszervereket írod át arra, amit a Vercel megad, és onnantól
+minden DNS-rekordot a Vercelen kezelsz. Kevesebb helyen kell nyúlkálni, cserébe
+a Rackhost DNS-kezelője kikerül a képből.
 
 ---
 
