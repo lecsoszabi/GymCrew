@@ -7,3 +7,8 @@ out
 *.tsbuildinfo
 next-env.d.ts
 .vercel
+
+# tesztek kimenete
+test-results
+playwright-report
+blob-report

@@ -3,15 +3,13 @@
 import { useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
+import { safeNext } from "@/lib/url";
 
 type Mode = "signin" | "signup";
 
 export default function LoginForm() {
   const router = useRouter();
   const params = useSearchParams();
-  // Csak saját oldalon belüli útvonalra irányítunk át. A "//evil.com" és a
-  // "https://evil.com" is abszolút cím — ezekkel ki lehetne vinni az embert
-  // egy hamis bejelentkező oldalra, ezért mindkettőt elvetjük.
   const next = safeNext(params.get("next"));
 
   const [mode, setMode] = useState<Mode>("signin");
@@ -23,8 +21,9 @@ export default function LoginForm() {
   // Ha a regisztrációhoz e-mail megerősítés kell, erre a képernyőre váltunk.
   const [sentTo, setSentTo] = useState<string | null>(null);
 
-  // A megerősítő link lejárt vagy már elhasználódott.
-  const linkFailed = params.get("error") === "auth";
+  // A callback pontos okot ad vissza, ne mossuk egybe őket.
+  const linkHiba = params.get("error");
+  const [ujraKuldve, setUjraKuldve] = useState(false);
 
   async function onSubmit(e: React.FormEvent) {
     e.preventDefault();
@@ -103,10 +102,42 @@ export default function LoginForm() {
 
   return (
     <div className="card p-5 animate-fade-up">
-      {linkFailed && (
-        <p role="alert" className="mb-4 rounded-lg bg-maybe/10 px-3 py-2.5 text-sm leading-relaxed text-maybe">
-          A megerősítő link lejárt vagy már fel lett használva. Lépj be, vagy
-          regisztrálj újra ugyanazzal a címmel.
+      {linkHiba && !ujraKuldve && (
+        <div className="mb-4 rounded-lg bg-maybe/10 px-3 py-2.5">
+          <p role="alert" className="text-sm leading-relaxed text-maybe">
+            {LINK_HIBAK[linkHiba] ?? LINK_HIBAK.invalid}
+          </p>
+          {linkHiba !== "masik-bongeszo" && (
+            <button
+              type="button"
+              className="mt-2 text-xs font-semibold text-accent underline underline-offset-2 disabled:opacity-50"
+              disabled={busy || !email.includes("@")}
+              onClick={async () => {
+                setBusy(true);
+                setError(null);
+                const supabase = createClient();
+                const { error } = await supabase.auth.resend({
+                  type: "signup",
+                  email: email.trim(),
+                  options: { emailRedirectTo: `${window.location.origin}/auth/callback` },
+                });
+                setBusy(false);
+                if (error) setError(translate(error.message));
+                else setUjraKuldve(true);
+              }}
+            >
+              {email.includes("@")
+                ? "Küldjetek új linket erre a címre"
+                : "Írd be fent az e-mail címed az új linkhez"}
+            </button>
+          )}
+        </div>
+      )}
+
+      {ujraKuldve && (
+        <p role="alert" className="mb-4 rounded-lg bg-accent/10 px-3 py-2.5 text-sm leading-relaxed text-accent">
+          Elküldtük az új megerősítő linket. Fontos: <strong>ugyanabban a böngészőben</strong>{" "}
+          nyisd meg, ahol most vagy.
         </p>
       )}
 
@@ -193,13 +224,16 @@ export default function LoginForm() {
   );
 }
 
-/** Csak "/valami" alakú, oldalon belüli útvonalat engedünk át. */
-function safeNext(raw: string | null): string {
-  if (!raw) return "/";
-  if (!raw.startsWith("/")) return "/";
-  if (raw.startsWith("//") || raw.startsWith("/\\")) return "/";
-  return raw;
-}
+/** A callback által visszaadott okok emberi nyelven. */
+const LINK_HIBAK: Record<string, string> = {
+  expired:
+    "A megerősítő link lejárt. Kérj egy újat — az e-mail címed írd be fent.",
+  invalid:
+    "A megerősítő link érvénytelen vagy már fel lett használva. Ha egyszer már rákattintottál, próbálj egyszerűen belépni.",
+  "masik-bongeszo":
+    "Ezt a linket abban a böngészőben kell megnyitni, ahol a regisztrációt elkezdted. Ha gépen regisztráltál és telefonon kaptad a levelet, másold át a linket a gépre — vagy regisztrálj újra azon az eszközön, ahol használni fogod.",
+  auth: "A megerősítő link nem működött. Kérj egy újat.",
+};
 
 /** A Supabase angol hibaüzeneteit érthető magyarra fordítjuk. */
 function translate(msg: string): string {

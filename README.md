@@ -135,6 +135,36 @@ megérkezés ténye kerül.
 
 ---
 
+## Tesztek
+
+Három réteg, mind futtatható egy paranccsal:
+
+```bash
+npm test          # egységtesztek + böngészős E2E
+npm run test:unit # csak a logika (gyors, ~0,2 mp)
+npm run test:e2e  # csak a böngészős
+npm run test:db   # adatbázis + RLS szabályok
+```
+
+| Réteg | Mit fed le | Darab |
+|---|---|---|
+| **Egység** (Vitest) | A „mindenkinek jó" idősáv-metszet, távolság és geofence, statisztika (sorozat, heti bontás), átirányítás-szűrő | 47 |
+| **E2E** (Playwright) | Beléptető kapu, belépés, regisztráció, megerősítő link, biztonsági fejlécek, mobil-ergonómia, akadálymentesség — asztali Chrome és iPhone Safari profilon | 102 |
+| **Adatbázis** | Egy ember = egy csoport, kötelező indok, RLS-elszigetelés, teremváltás jogosultsága, öröklés | 46 |
+
+**Amire figyelj:** az E2E a regisztrációt a Supabase-hívás elfogásával játssza
+végig, ezért **nem hoz létre valódi fiókot** és nem küld e-mailt. Így a teszt
+nem fogyasztja a levélküldő óránkénti keretét, és bármikor újrafuttatható.
+
+Első futtatás előtt kell a böngésző:
+
+```bash
+npx playwright install chromium webkit
+```
+
+Az adatbázis-teszt egy eldobható, beágyazott Postgres-t indít — nem kell hozzá
+Docker, és nem nyúl az éles Supabase projekthez.
+
 ## Adatbázis-teszt
 
 A séma és az üzleti szabályok ellenőrizhetők egy eldobható, beágyazott
