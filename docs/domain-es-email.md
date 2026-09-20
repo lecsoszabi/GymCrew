@@ -1,16 +1,41 @@
 # gymcrew.hu — domain és levélküldés
 
-Ez a fájl azt tartja nyilván, mit kell beállítani, amikor a domain DNS-zónája
-feléled. Addig semmit nem tudunk bevinni: a `gymcrew.hu` be van jegyezve
-(2026-09-20), de **nincs névszervere**, tehát a zóna nem létezik.
+## Állapot (2026-09-21)
 
-Ellenőrzés bármikor:
+**A DNS-rekordok fel vannak véve Rackhoston, és a névszerverről ellenőrizve
+helyesek.** Ami hiányzik: a `.hu` nyilvántartás még nem delegálta a domaint a
+Rackhost névszervereire, ezért kívülről nem oldódik fel. Ez a bejegyzés
+várakozási ideje — nincs rá ráhatásunk, csak idő kérdése.
+
+| Rekord | Típus | Érték | Állapot |
+|---|---|---|---|
+| `gymcrew.hu` | A | `216.198.79.1` | ✅ |
+| `www.gymcrew.hu` | A | `216.198.79.1` | ✅ |
+| `resend._domainkey` | TXT | DKIM kulcs (218 karakter, egyezik) | ✅ |
+| `rsend` | CNAME | `rsend-euw1.forge.rmta.net` | ✅ |
+| `send` | CNAME | `send.forge.rmta.net` | ✅ |
+| `_dmarc` | TXT | `v=DMARC1; p=none;` | ✅ |
+
+Ellenőrzés kívülről (amíg üres, a delegálás nincs kész):
 
 ```bash
 dig +short gymcrew.hu NS
 ```
 
-Amíg üres a válasz, várni kell.
+Ellenőrzés a névszervertől közvetlenül (ez már most működik):
+
+```bash
+dig @ns1.dns24.hu +short gymcrew.hu A
+dig @ns1.dns24.hu +short resend._domainkey.gymcrew.hu TXT
+```
+
+### Mi jön, ha a delegálás feléled
+
+1. **Resend → Verify** — a rekordok már a helyükön vannak, azonnal át kell mennie
+2. **Vercel** → a `gymcrew.hu` „Invalid Configuration" állapota magától „Valid"-ra vált
+3. **Supabase SMTP** beállítása (lentebb) — az API kulcsot neked kell beírnod
+4. Utána bemásolom a magyar e-mail sablonokat
+5. Végül az app átállítása az új címre (lentebb)
 
 ---
 
@@ -27,8 +52,8 @@ weboldalhoz tartozó kettő:
 
 | Típus | Név | Tartalom | Mire jó |
 |---|---|---|---|
-| `A` | `@` (vagy üres) | `76.76.21.21` | maga az oldal |
-| `CNAME` | `www` | `cname.vercel-dns.com` | www-s változat |
+| `A` | `@` (vagy üres) | `216.198.79.1` | maga az oldal |
+| `A` | `www` | `216.198.79.1` | www-s változat |
 
 > A Vercel a pontos értékeket kiírja, amikor a projektnél hozzáadod a domaint
 > (**Settings → Domains → Add**). Ha eltér a fentitől, **a Vercel kiírását
