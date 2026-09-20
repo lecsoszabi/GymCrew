@@ -91,6 +91,8 @@ git init && git add -A && git commit -m "GymCrew Szeged"
 gh repo create gymcrew-szeged --private --source=. --push
 ```
 
+> Élesben: **https://gymcrew-szeged.vercel.app** (a `gymcrew.hu` beállítása folyamatban)
+
 1. [vercel.com/new](https://vercel.com/new) → importáld a repót
 2. **Environment Variables**: vidd be ugyanazt a három értéket, mint a
    `.env.local`-ban. A `NEXT_PUBLIC_SITE_URL` a végleges címed legyen.
