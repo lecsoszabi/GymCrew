@@ -175,6 +175,32 @@ try {
   await expectFail(client, idegen, "kívülálló nem lát rá az edzésre",
     "insert into public.session_votes (session_id,user_id,vote) values ($1,$2,'yes')", [sessionId, idegen.id]);
 
+  console.log("\n— Az edzés kényes mezői —");
+  const gym3 = (await client.query("select id from public.gyms order by name offset 5 limit 1")).rows[0].id;
+
+  await expectFail(client, kristof, "nem-főnök nem válthat termet az edzésen",
+    "update public.sessions set gym_id=$1 where id=$2", [gym3, sessionId],
+    "csak a csoport főnöke");
+
+  await expectOk(client, szabi, "a főnök válthat termet az edzésen",
+    "update public.sessions set gym_id=$1 where id=$2", [gym3, sessionId]);
+
+  await expectFail(client, szabi, "az edzés nem tolható át másik csoportba",
+    "update public.sessions set group_id=gen_random_uuid() where id=$1", [sessionId],
+    "másik csoportba");
+
+  await expectFail(client, kristof, "az edzés készítője nem írható át",
+    "update public.sessions set created_by=$1 where id=$2", [kristof.id, sessionId],
+    "készítője nem módosítható");
+
+  await expectOk(client, kristof, "a státusz viszont bármelyik tagtól jöhet",
+    "update public.sessions set status='confirmed' where id=$1", [sessionId]);
+
+  console.log("\n— Profilkép tárhely —");
+  const bucket = (await client.query("select file_size_limit, allowed_mime_types from storage.buckets where id='avatars'")).rows[0];
+  check("az avatars bucket 2 MB-ra korlátozott", Number(bucket?.file_size_limit) === 2097152, `kapott: ${bucket?.file_size_limit}`);
+  check("csak képtípusok engedettek", Array.isArray(bucket?.allowed_mime_types) && bucket.allowed_mime_types.includes("image/jpeg") && !bucket.allowed_mime_types.includes("text/html"));
+
   console.log("\n— Napi jelzés —");
   await expectOk(client, szabi, "„ma megyek” indok nélkül mehet",
     "insert into public.daily_checkins (user_id,group_id,going) values ($1,$2,true)", [szabi.id, groupId]);

@@ -138,6 +138,42 @@ termet csak a főnök válthatja, és hogy a főnök kilépésekor a csapat ör�
 
 ---
 
+## Biztonság
+
+Az app publikus repóban van, ezért a védelem nem a kód titkosságára épül.
+
+**Ami véd:**
+
+| Réteg | Mit csinál |
+|---|---|
+| Middleware-kapu | Bejelentkezés nélkül minden útvonal a login oldalra terel |
+| Kétszeres ellenőrzés | Minden szerver-művelet külön is ellenőrzi a belépést — nem bízik a middleware-ben |
+| Row Level Security | Mind a 9 táblán. A csoportodon kívül semmit nem látsz |
+| Adatbázis-triggerek | A csoporttagságot és az edzés kényes mezőit közvetlen írással sem lehet átállítani |
+| Kötelező indok | A *nem* indoka `CHECK` constraint — az API-t megkerülve sem hagyható ki |
+| Biztonsági fejlécek | `X-Frame-Options: DENY`, `frame-ancestors 'none'`, `nosniff`, `Referrer-Policy`, HSTS |
+| `Permissions-Policy` | Helyzetlekérést csak a saját oldal kérhet; kamera, mikrofon, fizetés tiltva |
+| Átirányítás-szűrés | A `?next=` paraméter csak oldalon belüli útvonal lehet — nem vihető idegen oldalra |
+| Broadcast-ellenőrzés | A csatornán érkező pozíciókat validáljuk (koordináta-határ, hossz, `https://` avatar), mielőtt a térképre kerülnek |
+| Tárhely-korlát | Profilkép max. 2 MB, csak JPEG/PNG/WebP, és csak a saját mappádba |
+
+**Amit tudni érdemes:**
+
+- Az `anon` kulcs szándékosan nyilvános — nem hozzáférést ad, csak azonosítja a
+  projektet. Az adatokat az RLS védi. A `service_role` kulcsot **soha** ne tedd
+  a kódba vagy a `.env.local`-ba.
+- Nincs alkalmazásszintű rate limit. A bejelentkezést a Supabase korlátozza;
+  néhány fős csapatnál ez elég.
+- Ha a `realtime.messages` házirendek nem jönnek létre (a séma `NOTICE`-ként
+  jelzi), a lokátor sima csatornára esik vissza. Ilyenkor a csatornát a csoport
+  UUID-ja védi, amit kívülálló nem tud lekérdezni — de a szigorúbb védelemhez
+  érdemes a házirendeket létrehozni.
+- A `npm run test:db` 46 ellenőrzése pont ezeket a szabályokat feszegeti:
+  megpróbál más csoportjába belátni, indok nélkül nemet mondani, nem-főnökként
+  termet váltani. Mind el kell bukjon.
+
+---
+
 ## Adatvédelem, ami beépítve van
 
 - **Helyzet:** csak a csoporttársak látják, csak az edzés előtti 30 percben, és

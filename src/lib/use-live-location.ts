@@ -7,6 +7,41 @@ import { checkIn } from "@/app/app/actions";
 import { ARRIVAL_RADIUS_M, distanceMeters } from "@/lib/geo";
 import type { LivePing } from "@/lib/types";
 
+/** Szegedet bőven lefedő koordináta-határok — ezen kívül nem rajzolunk. */
+const LAT_RANGE = [45.5, 47.0] as const;
+const LNG_RANGE = [19.3, 21.0] as const;
+
+function finite(n: unknown, min: number, max: number): number | null {
+  return typeof n === "number" && Number.isFinite(n) && n >= min && n <= max ? n : null;
+}
+
+/** Ellenőrzött LivePing, vagy null, ha az üzenet nem értelmes. */
+function sanitizePing(raw: unknown): LivePing | null {
+  if (!raw || typeof raw !== "object") return null;
+  const p = raw as Record<string, unknown>;
+
+  const userId = typeof p.userId === "string" ? p.userId.slice(0, 64) : null;
+  const lat = finite(p.lat, LAT_RANGE[0], LAT_RANGE[1]);
+  const lng = finite(p.lng, LNG_RANGE[0], LNG_RANGE[1]);
+  if (!userId || lat === null || lng === null) return null;
+
+  const avatar =
+    typeof p.avatar === "string" && /^https:\/\//.test(p.avatar) ? p.avatar.slice(0, 500) : null;
+
+  return {
+    userId,
+    name: typeof p.name === "string" && p.name.trim() ? p.name.trim().slice(0, 40) : "Ismeretlen",
+    avatar,
+    lat,
+    lng,
+    accuracy: finite(p.accuracy, 0, 100_000) ?? 0,
+    heading: finite(p.heading, 0, 360),
+    distanceM: finite(p.distanceM, 0, 1_000_000),
+    arrived: p.arrived === true,
+    at: finite(p.at, 0, Number.MAX_SAFE_INTEGER) ?? Date.now(),
+  };
+}
+
 const PING_INTERVAL_MS = 10_000;
 const STALE_AFTER_MS = 75_000;
 
@@ -73,8 +108,10 @@ export function useLiveLocation({
 
       channel
         .on("broadcast", { event: "ping" }, ({ payload }) => {
-          const p = payload as LivePing;
-          if (!p?.userId || p.userId === me) return;
+          // A csatornán érkező üzenet idegen adat — csak ellenőrzés után
+          // engedjük a térképre. Egy hibás koordináta megbénítaná a Leafletet.
+          const p = sanitizePing(payload);
+          if (!p || p.userId === me) return;
           setOthers((prev) => ({ ...prev, [p.userId]: p }));
         })
         .subscribe((state) => {

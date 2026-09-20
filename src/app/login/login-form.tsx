@@ -9,7 +9,10 @@ type Mode = "signin" | "signup";
 export default function LoginForm() {
   const router = useRouter();
   const params = useSearchParams();
-  const next = params.get("next") || "/";
+  // Csak saját oldalon belüli útvonalra irányítunk át. A "//evil.com" és a
+  // "https://evil.com" is abszolút cím — ezekkel ki lehetne vinni az embert
+  // egy hamis bejelentkező oldalra, ezért mindkettőt elvetjük.
+  const next = safeNext(params.get("next"));
 
   const [mode, setMode] = useState<Mode>("signin");
   const [name, setName] = useState("");
@@ -152,6 +155,14 @@ export default function LoginForm() {
       </form>
     </div>
   );
+}
+
+/** Csak "/valami" alakú, oldalon belüli útvonalat engedünk át. */
+function safeNext(raw: string | null): string {
+  if (!raw) return "/";
+  if (!raw.startsWith("/")) return "/";
+  if (raw.startsWith("//") || raw.startsWith("/\\")) return "/";
+  return raw;
 }
 
 /** A Supabase angol hibaüzeneteit érthető magyarra fordítjuk. */

@@ -206,6 +206,30 @@ create trigger profiles_guard_group
   before update on public.profiles
   for each row execute function public.guard_profile_group();
 
+-- Az edzés kényes mezőit az RLS önmagában nem tudja védeni (nem lát rá a
+-- régi értékre), ezért triggerrel őrizzük: a termet csak a főnök válthatja,
+-- az edzés nem vándorolhat másik csoportba, és a készítője sem írható át.
+create or replace function public.guard_session_write()
+returns trigger language plpgsql security definer set search_path = public as $$
+begin
+  if new.group_id is distinct from old.group_id then
+    raise exception 'Az edzés nem helyezhető át másik csoportba';
+  end if;
+  if new.created_by is distinct from old.created_by then
+    raise exception 'Az edzés készítője nem módosítható';
+  end if;
+  if new.gym_id is distinct from old.gym_id
+     and not public.is_group_owner(new.group_id) then
+    raise exception 'A termet csak a csoport főnöke állíthatja át';
+  end if;
+  return new;
+end $$;
+
+drop trigger if exists sessions_guard_write on public.sessions;
+create trigger sessions_guard_write
+  before update on public.sessions
+  for each row execute function public.guard_session_write();
+
 -- ---------------------------------------------------------------------------
 -- 3. CSOPORT-MŰVELETEK (RPC)
 -- ---------------------------------------------------------------------------
@@ -541,9 +565,15 @@ end $$;
 -- 6. STORAGE — profilképek
 -- ---------------------------------------------------------------------------
 
-insert into storage.buckets (id, name, public)
-values ('avatars', 'avatars', true)
-on conflict (id) do nothing;
+-- Publikus olvasás, de 2 MB-os méret- és szigorú típuskorláttal: így a
+-- tárhelyet nem lehet teleszemetelni, és nem tölthető fel tetszőleges fájl.
+insert into storage.buckets (id, name, public, file_size_limit, allowed_mime_types)
+values ('avatars', 'avatars', true, 2097152,
+        array['image/jpeg', 'image/png', 'image/webp'])
+on conflict (id) do update
+  set public = true,
+      file_size_limit = excluded.file_size_limit,
+      allowed_mime_types = excluded.allowed_mime_types;
 
 do $$
 begin
