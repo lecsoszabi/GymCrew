@@ -1,0 +1,12 @@
+{
+  "name": "gymcrew-db-test",
+  "private": true,
+  "type": "module",
+  "description": "A séma és az üzleti szabályok ellenőrzése egy eldobható, beágyazott Postgres-en.",
+  "scripts": {
+    "test": "node run.mjs ../.. ."
+  },
+  "dependencies": {
+    "embedded-postgres": "18.4.0-beta.17"
+  }
+}
