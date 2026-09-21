@@ -2,11 +2,11 @@
 
 import dynamic from "next/dynamic";
 import Link from "next/link";
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { checkIn } from "@/app/app/actions";
 import { Avatar } from "@/components/avatar";
 import { Badge, EmptyState, ErrorNote, SectionTitle, useAction } from "@/components/ui";
-import { useLiveLocation } from "@/lib/use-live-location";
+import { useLiveLocation, type LocationState } from "@/lib/use-live-location";
 import { countdown, formatWhen } from "@/lib/date";
 import { LOCATOR_LEAD_MIN, LOCATOR_TAIL_MIN, etaMinutes, formatDistance } from "@/lib/geo";
 import type { LivePing, Vote } from "@/lib/types";
@@ -14,7 +14,7 @@ import type { LivePing, Vote } from "@/lib/types";
 const MapCanvas = dynamic(() => import("@/components/map-canvas"), {
   ssr: false,
   loading: () => (
-    <div className="h-[380px] animate-pulse rounded-2xl border border-line bg-surface" />
+    <div className="h-[60vh] max-h-[560px] min-h-[320px] animate-pulse rounded-2xl border border-line bg-surface" />
   ),
 });
 
@@ -39,14 +39,14 @@ export default function LiveMap({
   members: Member[];
   arrived: string[];
 }) {
-  const [, tick] = useState(0);
+  // Percenként frissítjük az időablakot (bekapcsol-e már a lokátor).
+  const [now, setNow] = useState(() => Date.now());
   useEffect(() => {
-    const id = setInterval(() => tick((n) => n + 1), 20_000);
+    const id = setInterval(() => setNow(Date.now()), 30_000);
     return () => clearInterval(id);
   }, []);
 
-  const minsToStart = session ? (new Date(session.startsAt).getTime() - Date.now()) / 60_000 : null;
-
+  const minsToStart = session ? (new Date(session.startsAt).getTime() - now) / 60_000 : null;
   const inWindow =
     session !== null &&
     session.status !== "cancelled" &&
@@ -54,26 +54,40 @@ export default function LiveMap({
     minsToStart <= LOCATOR_LEAD_MIN &&
     minsToStart > -LOCATOR_TAIL_MIN;
 
-  // Csak akkor osztom meg a helyzetem, ha én is megyek.
+  // Csak az osztja meg a helyzetét, aki "Megyek"-et szavazott.
   const shouldShare = inWindow && session?.myVote === "yes";
 
+  // Stabil objektumok: ha minden rendernél új készülne, a térkép újraigazodna.
+  const gymPoint = useMemo(
+    () => (gym ? { lat: gym.lat, lng: gym.lng } : null),
+    [gym?.lat, gym?.lng] // eslint-disable-line react-hooks/exhaustive-deps
+  );
+  const gymForMap = useMemo(
+    () => (gym ? { name: gym.name, lat: gym.lat, lng: gym.lng } : null),
+    [gym?.name, gym?.lat, gym?.lng] // eslint-disable-line react-hooks/exhaustive-deps
+  );
+
   const live = useLiveLocation({
-    enabled: inWindow,
+    subscribe: inWindow,
+    share: shouldShare,
     groupId,
     me,
     myName,
     myAvatar,
-    gym: gym ? { lat: gym.lat, lng: gym.lng } : null,
+    gym: gymPoint,
     sessionId: session?.id ?? null,
   });
 
-  const people: LivePing[] = [
-    ...(live.mine && shouldShare ? [{ ...live.mine, userId: "me", name: `${myName} (te)` }] : []),
-    ...live.others,
-  ];
+  const people = useMemo<LivePing[]>(
+    () => [
+      ...(live.mine && shouldShare ? [{ ...live.mine, userId: "me", name: `${myName} (te)` }] : []),
+      ...live.others,
+    ],
+    [live.mine, live.others, shouldShare, myName]
+  );
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-5">
       <header>
         <h1 className="text-2xl font-bold tracking-tight">Ki merre jár?</h1>
         <p className="mt-1 text-sm text-muted">
@@ -82,11 +96,11 @@ export default function LiveMap({
         </p>
       </header>
 
-      {/* --- Állapotsáv ---------------------------------------------- */}
+      {/* --- Állapot ------------------------------------------------- */}
       {!session ? (
         <EmptyState
           title="Nincs betervezett edzés"
-          body="A lokátor akkor kapcsol be, ha van megbeszélt időpont — fél órával előtte."
+          body={`A lokátor edzés előtt ${LOCATOR_LEAD_MIN} perccel kapcsol be magától.`}
         >
           <Link href="/app/plan" className="btn btn-primary">
             Időpontot javaslok
@@ -97,30 +111,32 @@ export default function LiveMap({
       ) : (
         <div className="card flex items-center gap-3 p-4">
           <span className="h-2.5 w-2.5 shrink-0 rounded-full bg-line" />
-          <div className="min-w-0 flex-1">
-            <p className="text-sm font-semibold">A lokátor most ki van kapcsolva</p>
-            <p className="mt-0.5 text-xs leading-relaxed text-muted">
-              {minsToStart !== null && minsToStart > 0
-                ? `Az edzés előtt ${LOCATOR_LEAD_MIN} perccel magától bekapcsol — addig ${countdown(session.startsAt)} van.`
-                : "Az edzés véget ért, a helymegosztás leállt."}
-            </p>
-          </div>
+          <p className="min-w-0 flex-1 text-sm leading-relaxed text-muted">
+            {minsToStart !== null && minsToStart > 0 ? (
+              <>
+                A lokátor{" "}
+                <span className="font-semibold text-fg">{countdown(session.startsAt)}</span> múlva
+                ér rá — edzés előtt {LOCATOR_LEAD_MIN} perccel magától bekapcsol.
+              </>
+            ) : (
+              "Az edzés véget ért, a helymegosztás leállt."
+            )}
+          </p>
         </div>
       )}
 
-      <MapCanvas
-        gym={gym ? { name: gym.name, lat: gym.lat, lng: gym.lng } : null}
-        people={people}
-        height={380}
-      />
+      {/* Az engedélyt érdemes előre megadni, hogy edzés előtt ne kelljen vele bajlódni. */}
+      <PermissionCard live={live} />
 
-      {/* --- Résztvevők ---------------------------------------------- */}
+      <MapCanvas gym={gymForMap} people={people} />
+
+      {/* --- Résztvevők ----------------------------------------------- */}
       <section className="pb-4">
         <SectionTitle>A csapat</SectionTitle>
         <div className="card divide-y divide-line">
           {members.map((m) => {
-            const ping = m.id === me ? live.mine : live.others.find((p) => p.userId === m.id);
-            const hasArrived = arrived.includes(m.id) || ping?.arrived;
+            const ping = m.id === me ? (shouldShare ? live.mine : null) : live.others.find((p) => p.userId === m.id);
+            const hasArrived = arrived.includes(m.id) || !!ping?.arrived;
 
             return (
               <div key={m.id} className="flex items-center gap-3 p-4">
@@ -135,14 +151,14 @@ export default function LiveMap({
                     {m.name}
                     {m.id === me && <span className="ml-1.5 text-xs font-normal text-muted">(te)</span>}
                   </p>
-                  <p className="mt-0.5 text-xs text-muted">
+                  <p className="mt-0.5 truncate text-xs text-muted">
                     {hasArrived
                       ? "Beért a terembe"
                       : ping
                         ? `${formatDistance(ping.distanceM)} · kb. ${etaMinutes(ping.distanceM)} perc`
                         : inWindow
                           ? "Nem osztja meg a helyzetét"
-                          : "—"}
+                          : "A lokátor még nem él"}
                   </p>
                 </div>
                 {hasArrived ? (
@@ -150,7 +166,7 @@ export default function LiveMap({
                 ) : ping ? (
                   <Badge tone="yes">Úton</Badge>
                 ) : (
-                  <Badge>Offline</Badge>
+                  <Badge>—</Badge>
                 )}
               </div>
             );
@@ -158,10 +174,59 @@ export default function LiveMap({
         </div>
 
         <p className="mt-3 text-center text-[11px] leading-relaxed text-muted">
-          A helyzeted csak a csoporttársaidnak, csak az edzés előtti {LOCATOR_LEAD_MIN} percben
-          látszik, és a terembe érve magától leáll. Adatbázisba egyedül a megérkezés ténye kerül.
+          A helyzeted csak a csoporttársaidnak, csak az edzés előtti {LOCATOR_LEAD_MIN} percben és
+          csak akkor látszik, ha „Megyek"-et szavaztál. A terembe érve magától leáll. Tartsd
+          nyitva az appot — lezárt telefonon a böngésző nem küld helyzetet.
         </p>
       </section>
+    </div>
+  );
+}
+
+/** Engedély-állapot és -kérés. Mindig látszik, hogy előre meg lehessen adni. */
+function PermissionCard({ live }: { live: LocationState }) {
+  if (live.permission === "granted") return null;
+
+  if (live.permission === "unsupported") {
+    return (
+      <div className="card p-4 text-sm leading-relaxed text-muted">
+        Ez a böngésző nem tud helyzetet megosztani. Nyisd meg az oldalt Safariban vagy
+        Chrome-ban — a Messenger és az Instagram beépített böngészője sokszor letiltja.
+      </div>
+    );
+  }
+
+  if (live.permission === "denied") {
+    return (
+      <div className="card space-y-2 border-no/30 p-4 text-sm leading-relaxed">
+        <p className="font-semibold text-no">A helymegosztás le van tiltva</p>
+        <p className="text-muted">
+          <span className="font-semibold text-fg">iPhone:</span> Beállítások → Adatvédelem és
+          biztonság → Helymeghatározás → Safari-webhelyek → „Az app használata közben".
+        </p>
+        <p className="text-muted">
+          <span className="font-semibold text-fg">Android:</span> a címsor melletti lakat ikon →
+          Engedélyek → Hely → Engedélyezés.
+        </p>
+        <button className="btn btn-ghost mt-1 w-full" onClick={live.requestPermission}>
+          Beállítottam, próbáld újra
+        </button>
+      </div>
+    );
+  }
+
+  // "prompt" vagy "unknown": még nem kérdeztük meg.
+  return (
+    <div className="card flex items-center gap-4 border-accent/30 bg-accent/5 p-4">
+      <div className="min-w-0 flex-1">
+        <p className="text-sm font-semibold">Engedélyezd a helymegosztást</p>
+        <p className="mt-0.5 text-xs leading-relaxed text-muted">
+          Most csak engedélyt kérünk — helyzetet csak edzés előtt, és csak ha jössz, küldünk.
+        </p>
+      </div>
+      <button className="btn btn-primary shrink-0 px-4 text-sm" onClick={live.requestPermission}>
+        Engedélyezem
+      </button>
     </div>
   );
 }
@@ -171,7 +236,7 @@ function LocatorBanner({
   shouldShare,
   sessionId,
 }: {
-  live: ReturnType<typeof useLiveLocation>;
+  live: LocationState;
   shouldShare: boolean;
   sessionId: string;
 }) {
@@ -193,7 +258,6 @@ function LocatorBanner({
     return (
       <div className="card border-accent/40 bg-accent/8 p-4">
         <p className="text-sm font-semibold text-accent">Beértél — a helymegosztás leállt 💪</p>
-        <p className="mt-1 text-xs text-muted">Jó edzést!</p>
       </div>
     );
   }
@@ -202,18 +266,13 @@ function LocatorBanner({
     return (
       <div className="card p-4">
         <p className="text-sm font-semibold">{live.error}</p>
-        <div className="mt-3 flex flex-wrap gap-2">
-          <button className="btn btn-ghost px-3 py-2 text-xs" onClick={live.start}>
-            Újra megpróbálom
-          </button>
-          <button
-            className="btn btn-ghost px-3 py-2 text-xs"
-            disabled={pending}
-            onClick={() => run(() => checkIn({ sessionId, source: "manual" }))}
-          >
-            Beértem — jelzem kézzel
-          </button>
-        </div>
+        <button
+          className="btn btn-ghost mt-3 w-full"
+          disabled={pending}
+          onClick={() => run(() => checkIn({ sessionId, source: "manual" }))}
+        >
+          Beértem — jelzem kézzel
+        </button>
         <ErrorNote>{error}</ErrorNote>
       </div>
     );

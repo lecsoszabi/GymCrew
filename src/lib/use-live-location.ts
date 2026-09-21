@@ -7,6 +7,13 @@ import { checkIn } from "@/app/app/actions";
 import { ARRIVAL_RADIUS_M, distanceMeters } from "@/lib/geo";
 import type { LivePing } from "@/lib/types";
 
+const PING_INTERVAL_MS = 10_000;
+const STALE_AFTER_MS = 75_000;
+/** A GPS egy helyben állva is "remeg" pár métert — ennyi alatt nem rajzolunk újra. */
+export const MIN_MOVE_M = 8;
+/** De ennyi időnként mindenképp frissítünk, hogy a pontosság is látszódjon. */
+export const MAX_QUIET_MS = 15_000;
+
 /** Szegedet bőven lefedő koordináta-határok — ezen kívül nem rajzolunk. */
 const LAT_RANGE = [45.5, 47.0] as const;
 const LNG_RANGE = [19.3, 21.0] as const;
@@ -42,30 +49,39 @@ function sanitizePing(raw: unknown): LivePing | null {
   };
 }
 
-const PING_INTERVAL_MS = 10_000;
-const STALE_AFTER_MS = 75_000;
+export type Permission = "unknown" | "prompt" | "granted" | "denied" | "unsupported";
 
 export type LocationState = {
   /** A csoporttársak legfrissebb pozíciói (a sajátom nélkül). */
   others: LivePing[];
-  /** A saját pozícióm, ha van engedély. */
+  /** A saját pozícióm — csak ha épp megosztom. */
   mine: LivePing | null;
   status: "off" | "asking" | "sharing" | "denied" | "error";
+  /** A böngésző helyengedélye, ha le tudjuk kérdezni. */
+  permission: Permission;
   error: string | null;
   arrived: boolean;
-  /** Kézi indítás, ha a böngésző csak gesztusra ad engedélyt. */
-  start: () => void;
+  /**
+   * Engedélykérés koppintásra. Telefonon a rendszer-ablak csak felhasználói
+   * gesztusra jön fel megbízhatóan, ezért ezt gombhoz kötjük.
+   */
+  requestPermission: () => void;
 };
 
 /**
  * Élő helymegosztás a csoport privát broadcast csatornáján.
  *
- * A pozíciók NEM kerülnek adatbázisba: elillanó üzenetek, amelyek csak addig
- * élnek, amíg a másik fél nyitva tartja az appot. Adatbázisba egyedül a
+ * Két külön kapcsoló:
+ *  - `subscribe`: a csoporttársak pozícióinak fogadása (az edzés előtti ablakban)
+ *  - `share`: a SAJÁT pozícióm figyelése és elküldése — csak ha "Megyek"-et
+ *    szavaztam. Aki nem jön, annak a helyzete nem megy ki.
+ *
+ * A pozíciók nem kerülnek adatbázisba: elillanó üzenetek. Adatbázisba egyedül a
  * megérkezés ténye kerül.
  */
 export function useLiveLocation({
-  enabled,
+  subscribe,
+  share,
   groupId,
   me,
   myName,
@@ -73,7 +89,8 @@ export function useLiveLocation({
   gym,
   sessionId,
 }: {
-  enabled: boolean;
+  subscribe: boolean;
+  share: boolean;
   groupId: string | null;
   me: string;
   myName: string;
@@ -82,21 +99,56 @@ export function useLiveLocation({
   sessionId: string | null;
 }): LocationState {
   const supabase = useMemo(() => createClient(), []);
-  const [others, setOthers] = useState<Record<string, LivePing>>({});
+  const [othersById, setOthersById] = useState<Record<string, LivePing>>({});
   const [mine, setMine] = useState<LivePing | null>(null);
   const [status, setStatus] = useState<LocationState["status"]>("off");
+  const [permission, setPermission] = useState<Permission>("unknown");
   const [error, setError] = useState<string | null>(null);
   const [arrived, setArrived] = useState(false);
+  // Újrapróbálás a felhasználó kérésére (pl. engedély megadása után).
+  const [attempt, setAttempt] = useState(0);
+
+  // A változó bemeneteket ref-ben tartjuk, így a figyelést NEM kell újraindítani,
+  // ha a szülő minden rendernél új objektumot ad át. Enélkül a figyelés minden
+  // rendernél leállt és újraindult, és a telefon tárolt pozíciója azonnal újabb
+  // rendert váltott ki — végtelen ciklus, ami megölte a böngészőt.
+  const inputs = useRef({ me, myName, myAvatar, gym, sessionId });
+  inputs.current = { me, myName, myAvatar, gym, sessionId };
 
   const channelRef = useRef<RealtimeChannel | null>(null);
   const latest = useRef<LivePing | null>(null);
-  const watchId = useRef<number | null>(null);
+  const lastShown = useRef<{ lat: number; lng: number; at: number; arrived: boolean } | null>(null);
   const checkedIn = useRef(false);
-  const manualStart = useRef(false);
 
-  // --- Csatorna: feliratkozás a csoport pozícióira -------------------------
+  // --- Engedély állapota --------------------------------------------------
   useEffect(() => {
-    if (!enabled || !groupId) return;
+    if (typeof navigator === "undefined" || !navigator.geolocation) {
+      setPermission("unsupported");
+      return;
+    }
+    const query = navigator.permissions?.query?.({ name: "geolocation" as PermissionName });
+    if (!query) return;
+
+    let active = true;
+    let handle: PermissionStatus | null = null;
+    query
+      .then((s) => {
+        if (!active) return;
+        handle = s;
+        setPermission(s.state as Permission);
+        s.onchange = () => setPermission(s.state as Permission);
+      })
+      .catch(() => undefined);
+
+    return () => {
+      active = false;
+      if (handle) handle.onchange = null;
+    };
+  }, []);
+
+  // --- Csatorna: a csoport pozícióinak fogadása --------------------------
+  useEffect(() => {
+    if (!subscribe || !groupId) return;
 
     let cancelled = false;
     let usePrivate = true;
@@ -108,18 +160,14 @@ export function useLiveLocation({
 
       channel
         .on("broadcast", { event: "ping" }, ({ payload }) => {
-          // A csatornán érkező üzenet idegen adat — csak ellenőrzés után
-          // engedjük a térképre. Egy hibás koordináta megbénítaná a Leafletet.
           const p = sanitizePing(payload);
-          if (!p || p.userId === me) return;
-          setOthers((prev) => ({ ...prev, [p.userId]: p }));
+          if (!p || p.userId === inputs.current.me) return;
+          setOthersById((prev) => ({ ...prev, [p.userId]: p }));
         })
         .subscribe((state) => {
           if (cancelled) return;
-          if (state === "SUBSCRIBED") setError(null);
           if (state === "CHANNEL_ERROR" && usePrivate) {
-            // A privát csatorna házirendje nincs beállítva — visszaesünk a
-            // sima csatornára (a csoport UUID-ja így is titkos marad).
+            // A privát csatorna házirendje nincs beállítva — sima csatorna.
             usePrivate = false;
             supabase.removeChannel(channel);
             connect();
@@ -136,13 +184,13 @@ export function useLiveLocation({
       if (channelRef.current) supabase.removeChannel(channelRef.current);
       channelRef.current = null;
     };
-  }, [enabled, groupId, me, supabase]);
+  }, [subscribe, groupId, supabase]);
 
-  // --- Elavult pozíciók kipucolása ----------------------------------------
+  // Elavult pozíciók kipucolása.
   useEffect(() => {
-    if (!enabled) return;
+    if (!subscribe) return;
     const id = setInterval(() => {
-      setOthers((prev) => {
+      setOthersById((prev) => {
         const now = Date.now();
         const next = Object.fromEntries(
           Object.entries(prev).filter(([, p]) => now - p.at < STALE_AFTER_MS)
@@ -151,113 +199,129 @@ export function useLiveLocation({
       });
     }, 15_000);
     return () => clearInterval(id);
-  }, [enabled]);
+  }, [subscribe]);
 
-  // --- Saját pozíció figyelése és szórása ---------------------------------
-  const beginWatch = useCallback(() => {
-    if (watchId.current !== null) return;
+  // --- Saját pozíció ------------------------------------------------------
+  const onPosition = useCallback((pos: GeolocationPosition) => {
+    const { me, myName, myAvatar, gym, sessionId } = inputs.current;
+    const here = { lat: pos.coords.latitude, lng: pos.coords.longitude };
+    const dist = gym ? distanceMeters(here, gym) : null;
+    const isThere = dist !== null && dist <= ARRIVAL_RADIUS_M;
+
+    const ping: LivePing = {
+      userId: me,
+      name: myName,
+      avatar: myAvatar,
+      lat: here.lat,
+      lng: here.lng,
+      accuracy: Math.round(pos.coords.accuracy),
+      heading: pos.coords.heading ?? null,
+      distanceM: dist,
+      arrived: isThere,
+      at: Date.now(),
+    };
+
+    // A szórásra mindig a legfrissebb megy…
+    latest.current = ping;
+    setStatus("sharing");
+    setPermission("granted");
+    setError(null);
+
+    // …a képernyő viszont csak érdemi elmozdulásnál frissül: a GPS egy helyben
+    // állva is ugrál pár métert, és minden apró ugrás újrarajzolást jelentene.
+    const prev = lastShown.current;
+    const moved = prev ? distanceMeters(prev, here) : Infinity;
+    const quietFor = prev ? ping.at - prev.at : Infinity;
+    if (!prev || moved >= MIN_MOVE_M || quietFor >= MAX_QUIET_MS || prev.arrived !== isThere) {
+      lastShown.current = { lat: here.lat, lng: here.lng, at: ping.at, arrived: isThere };
+      setMine(ping);
+    }
+
+    if (isThere && !checkedIn.current) {
+      checkedIn.current = true;
+      setArrived(true);
+      void checkIn({ sessionId, source: "auto" });
+    }
+  }, []);
+
+  const onError = useCallback((err: GeolocationPositionError) => {
+    if (err.code === err.PERMISSION_DENIED) {
+      setStatus("denied");
+      setPermission("denied");
+      setError("A helymegosztás le van tiltva ennél az oldalnál.");
+    } else {
+      setStatus("error");
+      setError("Nem sikerült meghatározni a helyzetedet. Próbáld a szabad ég alatt.");
+    }
+  }, []);
+
+  // A figyelés CSAK a `share` kapcsolóra (és kézi újrapróbálásra) indul újra.
+  useEffect(() => {
+    if (!share) {
+      setStatus("off");
+      setMine(null);
+      latest.current = null;
+      lastShown.current = null;
+      return;
+    }
     if (typeof navigator === "undefined" || !navigator.geolocation) {
       setStatus("error");
+      setPermission("unsupported");
       setError("Ez a böngésző nem tudja megosztani a helyzetedet.");
       return;
     }
 
     setStatus("asking");
-    watchId.current = navigator.geolocation.watchPosition(
-      (pos) => {
-        const here = { lat: pos.coords.latitude, lng: pos.coords.longitude };
-        const dist = gym ? distanceMeters(here, gym) : null;
-        const isThere = dist !== null && dist <= ARRIVAL_RADIUS_M;
+    const id = navigator.geolocation.watchPosition(onPosition, onError, {
+      enableHighAccuracy: true,
+      maximumAge: 5_000,
+      timeout: 20_000,
+    });
+    return () => navigator.geolocation.clearWatch(id);
+  }, [share, attempt, onPosition, onError]);
 
-        const ping: LivePing = {
-          userId: me,
-          name: myName,
-          avatar: myAvatar,
-          lat: here.lat,
-          lng: here.lng,
-          accuracy: Math.round(pos.coords.accuracy),
-          heading: pos.coords.heading ?? null,
-          distanceM: dist,
-          arrived: isThere,
-          at: Date.now(),
-        };
-
-        latest.current = ping;
-        setMine(ping);
-        setStatus("sharing");
-
-        if (isThere && !checkedIn.current) {
-          checkedIn.current = true;
-          setArrived(true);
-          void checkIn({ sessionId, source: "auto" });
-        }
-      },
-      (err) => {
-        if (err.code === err.PERMISSION_DENIED) {
-          setStatus("denied");
-          setError("Nem adtál helymegosztási engedélyt. A többieket így is látod.");
-        } else {
-          setStatus("error");
-          setError("Nem sikerült meghatározni a helyzetedet.");
-        }
-      },
-      { enableHighAccuracy: true, maximumAge: 5_000, timeout: 20_000 }
-    );
-  }, [gym, me, myAvatar, myName, sessionId]);
-
+  // Szórás 10 másodpercenként — csak ha tényleg megosztok.
   useEffect(() => {
-    if (!enabled) {
-      if (watchId.current !== null) {
-        navigator.geolocation.clearWatch(watchId.current);
-        watchId.current = null;
-      }
-      setStatus("off");
-      setMine(null);
-      return;
-    }
-
-    beginWatch();
-
-    return () => {
-      if (watchId.current !== null) {
-        navigator.geolocation.clearWatch(watchId.current);
-        watchId.current = null;
-      }
-    };
-  }, [enabled, beginWatch]);
-
-  // Megosztás 10 másodpercenként — megérkezés után leáll.
-  useEffect(() => {
-    if (!enabled) return;
-
+    if (!share) return;
     const id = setInterval(() => {
       const ping = latest.current;
       const channel = channelRef.current;
       if (!ping || !channel) return;
-      if (ping.arrived && checkedIn.current) {
-        // Egy utolsó "beértem" üzenet után nincs több szórás.
-        void channel.send({ type: "broadcast", event: "ping", payload: ping });
-        latest.current = null;
-        return;
-      }
       void channel.send({ type: "broadcast", event: "ping", payload: ping });
+      // A "beértem" után egy utolsó üzenet megy ki, aztán csend.
+      if (ping.arrived && checkedIn.current) latest.current = null;
     }, PING_INTERVAL_MS);
-
     return () => clearInterval(id);
-  }, [enabled]);
+  }, [share]);
 
-  const start = useCallback(() => {
-    manualStart.current = true;
-    checkedIn.current = false;
-    beginWatch();
-  }, [beginWatch]);
+  const requestPermission = useCallback(() => {
+    if (typeof navigator === "undefined" || !navigator.geolocation) {
+      setPermission("unsupported");
+      return;
+    }
+    // Koppintásra kérünk egy pozíciót: ez hozza fel a rendszer engedélyablakát.
+    navigator.geolocation.getCurrentPosition(
+      () => {
+        setPermission("granted");
+        setError(null);
+        setAttempt((n) => n + 1);
+      },
+      (err) => {
+        if (err.code === err.PERMISSION_DENIED) {
+          setPermission("denied");
+          setError("A helymegosztás le van tiltva ennél az oldalnál.");
+        } else {
+          setError("Nem sikerült meghatározni a helyzetedet.");
+        }
+      },
+      { enableHighAccuracy: false, maximumAge: 60_000, timeout: 15_000 }
+    );
+  }, []);
 
-  return {
-    others: Object.values(others).sort((a, b) => (a.distanceM ?? 0) - (b.distanceM ?? 0)),
-    mine,
-    status,
-    error,
-    arrived,
-    start,
-  };
+  const others = useMemo(
+    () => Object.values(othersById).sort((a, b) => (a.distanceM ?? 0) - (b.distanceM ?? 0)),
+    [othersById]
+  );
+
+  return { others, mine, status, permission, error, arrived, requestPermission };
 }
