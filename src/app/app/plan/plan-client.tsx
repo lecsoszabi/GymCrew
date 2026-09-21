@@ -5,12 +5,12 @@ import { proposeSession } from "@/app/app/actions";
 import { AvailabilityEditor } from "@/components/availability-editor";
 import { SessionRow } from "@/components/session-row";
 import { GymPicker } from "@/components/gym-picker";
+import { WhenPicker, composeISO, splitISO } from "@/components/when-picker";
 import { EmptyState, ErrorNote, SectionTitle, Sheet, useAction } from "@/components/ui";
 import {
   WEEKDAYS,
   minutesToTime,
   nextDateForWeekday,
-  isoToLocalInput,
   type CommonSlot,
 } from "@/lib/date";
 import type { Availability, Gym, SessionVote, TrainingSession } from "@/lib/types";
@@ -43,7 +43,8 @@ export default function PlanClient({
   commonSlots: CommonSlot[];
 }) {
   const [proposing, setProposing] = useState(false);
-  const [when, setWhen] = useState("");
+  const [whenDay, setWhenDay] = useState("");
+  const [whenMin, setWhenMin] = useState(18 * 60);
   const [duration, setDuration] = useState(90);
   const [note, setNote] = useState("");
   const [gymId, setGymId] = useState<string | null>(groupGymId);
@@ -69,7 +70,9 @@ export default function PlanClient({
   const silentMembers = availabilityByMember.filter((a) => a.count === 0);
 
   function openProposal(prefillISO?: string) {
-    setWhen(isoToLocalInput(prefillISO ?? defaultNextSlot()));
+    const { day, minutes } = splitISO(prefillISO ?? defaultNextSlot());
+    setWhenDay(day);
+    setWhenMin(minutes);
     setProposing(true);
   }
 
@@ -194,18 +197,14 @@ export default function PlanClient({
       {/* --- Új időpont lap ------------------------------------------ */}
       <Sheet open={proposing} onClose={() => setProposing(false)} title="Új időpont">
         <div className="space-y-4">
-          <div>
-            <label className="label" htmlFor="when">
-              Mikor?
-            </label>
-            <input
-              id="when"
-              type="datetime-local"
-              className="field"
-              value={when}
-              onChange={(e) => setWhen(e.target.value)}
-            />
-          </div>
+          <WhenPicker
+            day={whenDay}
+            minutes={whenMin}
+            onChange={({ day, minutes }) => {
+              setWhenDay(day);
+              setWhenMin(minutes);
+            }}
+          />
 
           <div>
             <p className="label">Meddig tart?</p>
@@ -251,12 +250,12 @@ export default function PlanClient({
 
           <button
             className="btn btn-primary w-full"
-            disabled={pending || !when}
+            disabled={pending || !whenDay}
             onClick={() =>
               run(
                 () =>
                   proposeSession({
-                    startsAt: new Date(when).toISOString(),
+                    startsAt: composeISO(whenDay, whenMin),
                     durationMin: duration,
                     note,
                     gymId,

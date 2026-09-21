@@ -84,7 +84,7 @@ export function AvailabilityEditor({
                     <div key={i} className="flex items-center gap-2">
                       <input
                         type="time"
-                        className="field flex-1 py-2 text-sm"
+                        className="field flex-1 py-2.5"
                         value={minutesToTime(r.start)}
                         onChange={(e) =>
                           update(
@@ -99,7 +99,7 @@ export function AvailabilityEditor({
                       <span className="text-muted">–</span>
                       <input
                         type="time"
-                        className="field flex-1 py-2 text-sm"
+                        className="field flex-1 py-2.5"
                         value={minutesToTime(r.end)}
                         onChange={(e) =>
                           update(

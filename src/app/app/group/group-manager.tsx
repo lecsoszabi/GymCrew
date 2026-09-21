@@ -12,7 +12,7 @@ import {
 } from "./actions";
 import { Avatar } from "@/components/avatar";
 import { GymPicker } from "@/components/gym-picker";
-import { Badge, ErrorNote, SectionTitle, Sheet, useAction } from "@/components/ui";
+import { Badge, ConfirmSheet, ErrorNote, SectionTitle, Sheet, useAction } from "@/components/ui";
 import type { Gym } from "@/lib/types";
 
 type Member = { id: string; name: string; avatar: string | null };
@@ -47,6 +47,10 @@ export default function GroupManager({
   const [newName, setNewName] = useState(group.name);
   const [leaving, setLeaving] = useState(false);
   const [copied, setCopied] = useState(false);
+  // Megerősítésre váró művelet (kitevés / főnökváltás).
+  const [pendingAction, setPendingAction] = useState<
+    { kind: "remove" | "owner"; member: Member } | null
+  >(null);
 
   async function copyCode() {
     try {
@@ -174,19 +178,14 @@ export default function GroupManager({
                   <button
                     className="rounded-lg bg-surface-2 px-2.5 py-2 text-[11px] font-semibold text-muted"
                     disabled={pending}
-                    onClick={() => {
-                      if (confirm(`${m.name} legyen az új főnök?`)) run(() => transferOwnership(m.id));
-                    }}
+                    onClick={() => setPendingAction({ kind: "owner", member: m })}
                   >
                     Főnök lesz
                   </button>
                   <button
                     className="rounded-lg bg-no/10 px-2.5 py-2 text-[11px] font-semibold text-no"
                     disabled={pending}
-                    onClick={() => {
-                      if (confirm(`Biztosan kiteszed ${m.name} tagot a csapatból?`))
-                        run(() => removeMember(m.id));
-                    }}
+                    onClick={() => setPendingAction({ kind: "remove", member: m })}
                   >
                     Kitesz
                   </button>
@@ -288,6 +287,32 @@ export default function GroupManager({
           Mentés
         </button>
       </Sheet>
+
+      <ConfirmSheet
+        open={pendingAction !== null}
+        title={
+          pendingAction?.kind === "owner"
+            ? `${pendingAction.member.name} legyen a főnök?`
+            : `Kiteszed ${pendingAction?.member.name ?? ""} tagot?`
+        }
+        body={
+          pendingAction?.kind === "owner"
+            ? "Ő válthat termet és hívhat meg embereket. Te sima tag leszel."
+            : "Kikerül a csapatból, de a meghívókóddal bármikor visszaléphet."
+        }
+        confirmLabel={pendingAction?.kind === "owner" ? "Legyen ő" : "Kiteszem"}
+        danger={pendingAction?.kind === "remove"}
+        pending={pending}
+        onClose={() => setPendingAction(null)}
+        onConfirm={() => {
+          const a = pendingAction;
+          if (!a) return;
+          run(
+            () => (a.kind === "owner" ? transferOwnership(a.member.id) : removeMember(a.member.id)),
+            () => setPendingAction(null)
+          );
+        }}
+      />
 
       <Sheet open={leaving} onClose={() => setLeaving(false)} title="Biztosan kilépsz?">
         <p className="-mt-2 text-sm leading-relaxed text-muted">

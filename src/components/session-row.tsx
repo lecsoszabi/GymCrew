@@ -4,7 +4,7 @@ import { useState } from "react";
 import { checkIn, deleteSession, setSessionGym, setSessionStatus } from "@/app/app/actions";
 import { Avatar } from "@/components/avatar";
 import { GymPicker } from "@/components/gym-picker";
-import { Badge, ErrorNote, Sheet, useAction } from "@/components/ui";
+import { Badge, ConfirmSheet, ErrorNote, Sheet, useAction } from "@/components/ui";
 import { VoteControls } from "@/components/vote-controls";
 import { formatWhen } from "@/lib/date";
 import type { Gym, SessionVote, TrainingSession, Vote } from "@/lib/types";
@@ -33,6 +33,7 @@ export function SessionRow({
   const [open, setOpen] = useState(false);
   const [switching, setSwitching] = useState(false);
   const [pickedGym, setPickedGym] = useState<string | null>(session.gym_id);
+  const [deleting, setDeleting] = useState(false);
   const { pending, error, run } = useAction();
 
   const myVote = (votes.find((v) => v.user_id === me)?.vote ?? null) as Vote | null;
@@ -193,10 +194,7 @@ export function SessionRow({
               <button
                 className="btn btn-ghost ml-auto px-3 py-2 text-xs text-muted"
                 disabled={pending}
-                onClick={() => {
-                  if (confirm("Biztosan törlöd ezt az időpontot?"))
-                    run(() => deleteSession(session.id));
-                }}
+                onClick={() => setDeleting(true)}
               >
                 Törlés
               </button>
@@ -204,6 +202,17 @@ export function SessionRow({
           </div>
         </div>
       )}
+
+      <ConfirmSheet
+        open={deleting}
+        title="Törlöd ezt az időpontot?"
+        body="A szavazatok is elvesznek. Ha csak elmarad, inkább mondd le."
+        confirmLabel="Törlöm"
+        danger
+        pending={pending}
+        onClose={() => setDeleting(false)}
+        onConfirm={() => run(() => deleteSession(session.id), () => setDeleting(false))}
+      />
 
       <Sheet open={switching} onClose={() => setSwitching(false)} title="Ehhez az edzéshez">
         <GymPicker gyms={gyms} value={pickedGym} onChange={setPickedGym} max={5} />

@@ -131,3 +131,46 @@ export function Sheet({
     </div>
   );
 }
+
+/**
+ * Megerősítés az appon belül. A natív confirm() iPhone-on néhány ablak után
+ * felkínálja a "további párbeszédek blokkolását", és onnantól csendben nemet
+ * ad — a gomb egyszerűen nem csinált semmit.
+ */
+export function ConfirmSheet({
+  open,
+  title,
+  body,
+  confirmLabel,
+  danger,
+  pending,
+  onConfirm,
+  onClose,
+}: {
+  open: boolean;
+  title: string;
+  body?: string;
+  confirmLabel: string;
+  danger?: boolean;
+  pending?: boolean;
+  onConfirm: () => void;
+  onClose: () => void;
+}) {
+  return (
+    <Sheet open={open} onClose={onClose} title={title}>
+      {body && <p className="-mt-2 text-sm leading-relaxed text-muted">{body}</p>}
+      <div className="mt-5 grid grid-cols-2 gap-2">
+        <button className="btn btn-ghost" onClick={onClose} disabled={pending}>
+          Mégse
+        </button>
+        <button
+          className={`btn ${danger ? "bg-no text-ink" : "btn-primary"}`}
+          onClick={onConfirm}
+          disabled={pending}
+        >
+          {pending ? "Egy pillanat…" : confirmLabel}
+        </button>
+      </div>
+    </Sheet>
+  );
+}
