@@ -6,23 +6,45 @@ import { retryAfterSeconds, translateAuthError } from "@/lib/auth-errors";
 
 const RESEND_WAIT = 60;
 
+/** Honnan jön a kód: regisztráció megerősítése vagy elfelejtett jelszó. */
+export type CodePurpose = "signup" | "recovery";
+
+/** Új levél kérése — a jelszó-visszaállításnál ugyanaz, mint az első. */
+export function sendCode(purpose: CodePurpose, email: string) {
+  const auth = createClient().auth;
+  if (purpose === "recovery") {
+    // Ha valaki mégis a levélben lévő linket nyitja meg, az új jelszó oldalára érjen.
+    return auth.resetPasswordForEmail(email, {
+      redirectTo: `${window.location.origin}/auth/callback?next=/reset-password`,
+    });
+  }
+  return auth.resend({
+    type: "signup",
+    email,
+    options: { emailRedirectTo: `${window.location.origin}/auth/callback` },
+  });
+}
+
 /**
- * A regisztráció megerősítése a levélben kapott kóddal.
+ * A levélben kapott kód beírása — regisztráció megerősítéséhez és elfelejtett
+ * jelszóhoz.
  *
  * Link helyett azért kód, mert a link (PKCE miatt) csak abban a böngészőben
- * működik, ahol a regisztráció elkezdődött, és a levelezők linkellenőrzője
+ * működik, ahol a folyamat elkezdődött, és a levelezők linkellenőrzője
  * még a felhasználó előtt "rákattinthat". A kódot bármelyik eszközről be
  * lehet írni, és azt senki nem használja el helyette.
  */
 export function CodeStep({
   email,
   justSent,
+  purpose = "signup",
   onBack,
   onVerified,
 }: {
   email: string;
   /** Épp most ment ki a levél — új kódot csak kicsit később lehet kérni. */
   justSent: boolean;
+  purpose?: CodePurpose;
   onBack: () => void;
   onVerified: () => void;
 }) {
@@ -43,7 +65,11 @@ export function CodeStep({
     setError(null);
     setInfo(null);
     setBusy(true);
-    const { error } = await createClient().auth.verifyOtp({ email, token: code, type: "email" });
+    const { error } = await createClient().auth.verifyOtp({
+      email,
+      token: code,
+      type: purpose === "recovery" ? "recovery" : "email",
+    });
     if (error) {
       setError(translateAuthError(error.message));
       setBusy(false);
@@ -57,11 +83,7 @@ export function CodeStep({
     setError(null);
     setInfo(null);
     setBusy(true);
-    const { error } = await createClient().auth.resend({
-      type: "signup",
-      email,
-      options: { emailRedirectTo: `${window.location.origin}/auth/callback` },
-    });
+    const { error } = await sendCode(purpose, email);
     setBusy(false);
     if (error) {
       setError(translateAuthError(error.message));
@@ -84,9 +106,12 @@ export function CodeStep({
         </div>
         <h2 className="text-lg font-bold tracking-tight">Nézd meg a postádat</h2>
         <p className="mx-auto mt-2 max-w-xs text-sm leading-relaxed text-muted">
-          {justSent
-            ? "Küldtünk egy megerősítő kódot ide:"
-            : "Ezt a címet még nem erősítetted meg. A kódot ide küldtük:"}
+          {purpose === "recovery"
+            ? // Nem áruljuk el, van-e ilyen fiók — a Supabase sem.
+              "Ha van fiókod ezzel a címmel, küldtünk rá egy kódot, amivel új jelszót állíthatsz be:"
+            : justSent
+              ? "Küldtünk egy megerősítő kódot ide:"
+              : "Ezt a címet még nem erősítetted meg. A kódot ide küldtük:"}
         </p>
         <p className="mt-1.5 break-all text-sm font-semibold text-accent">{email}</p>
       </div>
@@ -120,7 +145,7 @@ export function CodeStep({
         )}
 
         <button type="submit" className="btn btn-primary mt-4 w-full" disabled={busy || code.length < 6}>
-          {busy ? "Egy pillanat…" : "Megerősítem"}
+          {busy ? "Egy pillanat…" : purpose === "recovery" ? "Tovább az új jelszóhoz" : "Megerősítem"}
         </button>
       </form>
 
@@ -129,8 +154,7 @@ export function CodeStep({
       </button>
 
       <p className="mx-auto mt-4 max-w-xs text-center text-xs leading-relaxed text-muted">
-        Ha pár percen belül nem jön meg, nézd meg a spam mappát is. Kód helyett linket kaptál?
-        Az is jó — ebben a böngészőben nyisd meg.
+        Ha pár percen belül nem jön meg, nézd meg a spam mappát is.
       </p>
 
       <button

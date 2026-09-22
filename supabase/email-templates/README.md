@@ -24,14 +24,15 @@ Saját, igazolt domain nélkül a Resend csak a saját címedre enged küldeni.
 |---|---|---|
 | `confirm-signup.html` | Confirm signup | A GymCrew megerősítő kódod |
 | `magic-link.html` | Magic Link | Belépési linked a GymCrew-hoz |
-| `reset-password.html` | Reset Password | Új jelszó a GymCrew fiókodhoz |
+| `reset-password.html` | Reset Password | A GymCrew jelszó-visszaállító kódod |
 | `change-email.html` | Change Email Address | Erősítsd meg az új e-mail címed |
 | `invite.html` | Invite user | Meghívtak egy GymCrew csapatba |
 
 A `{{ .Token }}` és a `{{ .ConfirmationURL }}` változót a Supabase tölti ki — ne írd át.
 
-**A regisztráció kóddal megy, nem linkkel.** A `confirm-signup.html`-ben csak a
-`{{ .Token }}` van, link nincs: a link (PKCE miatt) csak abban a böngészőben
+**A regisztráció és az elfelejtett jelszó kóddal megy, nem linkkel.** A
+`confirm-signup.html`-ben és a `reset-password.html`-ben csak a `{{ .Token }}`
+van, link nincs: a link (PKCE miatt) csak abban a böngészőben
 működne, ahol a regisztráció elkezdődött, és a levelezők linkellenőrzője még a
 felhasználó előtt elhasználhatná. A kódot az app „Nézd meg a postádat”
 képernyőjén kell beírni — bármelyik eszközről olvasható. Ugyanitt lehet új kódot

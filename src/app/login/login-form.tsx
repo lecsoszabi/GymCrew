@@ -6,6 +6,7 @@ import { createClient } from "@/lib/supabase/client";
 import { safeNext } from "@/lib/url";
 import { translateAuthError as translate } from "@/lib/auth-errors";
 import { CodeStep } from "./code-step";
+import { ForgotPassword } from "./forgot-password";
 
 type Mode = "signin" | "signup";
 
@@ -22,6 +23,7 @@ export default function LoginForm() {
   const [error, setError] = useState<string | null>(null);
   // Ha a címet még meg kell erősíteni, a kódbeíró képernyőre váltunk.
   const [codeFor, setCodeFor] = useState<{ email: string; justSent: boolean } | null>(null);
+  const [forgot, setForgot] = useState(false);
 
   // A callback pontos okot ad vissza, ne mossuk egybe őket.
   const linkHiba = params.get("error");
@@ -99,8 +101,26 @@ export default function LoginForm() {
     );
   }
 
+  if (forgot) {
+    return (
+      <ForgotPassword
+        initialEmail={email.trim()}
+        onBack={() => {
+          setForgot(false);
+          setError(null);
+        }}
+        onVerified={() => {
+          router.replace("/reset-password");
+          router.refresh();
+        }}
+      />
+    );
+  }
+
   // Másik böngészőben nyitott link: a cím már meg van erősítve, csak belépni kell.
   const linkMegerositve = linkHiba === "masik-bongeszo";
+  // A jelszó-visszaállító linknél nem megerősítő kód kell, hanem jelszó-visszaállító.
+  const jelszoLink = linkHiba === "jelszo-link";
 
   return (
     <div className="card p-5 animate-fade-up">
@@ -112,7 +132,19 @@ export default function LoginForm() {
           >
             {LINK_HIBAK[linkHiba] ?? LINK_HIBAK.invalid}
           </p>
-          {!linkMegerositve && (
+          {jelszoLink && (
+            <button
+              type="button"
+              className="mt-2 text-xs font-semibold text-accent underline underline-offset-2"
+              onClick={() => {
+                setLinkHibaKezelve(true);
+                setForgot(true);
+              }}
+            >
+              Kérek jelszó-visszaállító kódot
+            </button>
+          )}
+          {!linkMegerositve && !jelszoLink && (
             <button
               type="button"
               className="mt-2 text-xs font-semibold text-accent underline underline-offset-2 disabled:opacity-50"
@@ -209,6 +241,18 @@ export default function LoginForm() {
             autoComplete={mode === "signup" ? "new-password" : "current-password"}
             required
           />
+          {mode === "signin" && (
+            <button
+              type="button"
+              className="mt-2 text-xs font-semibold text-accent underline-offset-2 hover:underline"
+              onClick={() => {
+                setError(null);
+                setForgot(true);
+              }}
+            >
+              Elfelejtett jelszó?
+            </button>
+          )}
         </div>
 
         {error && (
@@ -236,4 +280,6 @@ const LINK_HIBAK: Record<string, string> = {
   "masik-bongeszo":
     "A címedet megerősítettük ✓ Csak ebben a böngészőben nem tudtunk automatikusan beléptetni, mert a regisztráció egy másikban kezdődött. Lépj be alább az e-mail címeddel és a jelszavaddal.",
   auth: "A megerősítő link nem működött. Kérj helyette egy kódot.",
+  "jelszo-link":
+    "A jelszó-visszaállító link nem működött: lejárt, már felhasználták, vagy másik böngészőben nyitottad meg. Kérj inkább kódot — azt bármelyik eszközön beírhatod.",
 };

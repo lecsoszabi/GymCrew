@@ -15,6 +15,7 @@ főnöke bármikor válthat köztük.
 |---|---|
 | 🔒 **Zárt** | Bejelentkezés nélkül semmi nem érhető el — fekete login képernyő fogad |
 | ✉️ **Regisztráció kóddal** | A levélben egyszer használható kód jön, nem link — bármelyik eszközön beírható, a levelező linkellenőrzője sem használja el |
+| 🔑 **Elfelejtett jelszó** | Ugyanígy kóddal: e-mail cím → kód a levélben → új jelszó |
 | 👥 **Csoport** | Meghívókód vagy e-mailes meghívó. Egy ember egyszerre **egy** csoport tagja |
 | 🏋️ **Terem** | A 28 szegedi kondi közül a **csoport főnöke** választ, edzésenként is felülírható |
 | 🗓️ **Időpont** | Bárki javasol, mindenki szavaz: Igen / Talán / **Nem + kötelező indok** |
@@ -93,7 +94,7 @@ git init && git add -A && git commit -m "GymCrew Szeged"
 gh repo create gymcrew-szeged --private --source=. --push
 ```
 
-> Élesben: **https://gymcrew-szeged.vercel.app** (a `gymcrew.hu` beállítása folyamatban)
+> Élesben: **https://gymcrew.hu**
 
 1. [vercel.com/new](https://vercel.com/new) → importáld a repót
 2. **Environment Variables**: vidd be ugyanazt a három értéket, mint a
@@ -150,9 +151,9 @@ npm run test:db   # adatbázis + RLS szabályok
 
 | Réteg | Mit fed le | Darab |
 |---|---|---|
-| **Egység** (Vitest) | A „mindenkinek jó" idősáv-metszet, távolság és geofence, statisztika (sorozat, heti bontás), átirányítás-szűrő, a mai edzés kiválasztása budapesti idő szerint (óraátállítással), időválasztó, a lokátor nem indul újra minden rendernél, a térkép nem igazodik minden GPS-jelre, a belépési hibák magyarul | 93 |
-| **E2E** (Playwright) | Beléptető kapu, belépés, regisztráció, megerősítés kóddal, megerősítő link, biztonsági fejlécek, mobil-ergonómia, akadálymentesség — asztali Chrome és iPhone Safari profilon | 114 |
-| **Bejelentkezve** (Playwright, élesben) | Minden oldal telefonon (nincs kilógás, nincs konzolhiba), alsó menü, a „Ma megyek" folyamat, térkép szimulált GPS-szel (nem pörög, nem ugrál, iPhone-on is sötét) | 16 |
+| **Egység** (Vitest) | A „mindenkinek jó" idősáv-metszet, távolság és geofence, statisztika (sorozat, heti bontás), átirányítás-szűrő, a mai edzés kiválasztása budapesti idő szerint (óraátállítással), időválasztó, a lokátor nem indul újra minden rendernél, a térkép nem igazodik minden GPS-jelre, a belépési hibák magyarul | 94 |
+| **E2E** (Playwright) | Beléptető kapu, belépés, regisztráció, megerősítés kóddal, elfelejtett jelszó, megerősítő link, biztonsági fejlécek, mobil-ergonómia, akadálymentesség — asztali Chrome és iPhone Safari profilon | 130 |
+| **Bejelentkezve** (Playwright, élesben) | Minden oldal telefonon (nincs kilógás, nincs konzolhiba), alsó menü, a „Ma megyek" folyamat, térkép szimulált GPS-szel (nem pörög, nem ugrál, iPhone-on is sötét), új jelszó oldal (jelszót soha nem módosít) | 17 |
 | **Adatbázis** | Egy ember = egy csoport, kötelező indok, RLS-elszigetelés, teremváltás jogosultsága, öröklés, napi jelzés törlése | 49 |
 
 **Amire figyelj:** az E2E a regisztrációt a Supabase-hívás elfogásával játssza

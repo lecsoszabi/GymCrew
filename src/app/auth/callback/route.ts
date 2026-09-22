@@ -18,9 +18,13 @@ import type { EmailOtpType } from "@supabase/supabase-js";
 export async function GET(request: NextRequest) {
   const { searchParams, origin } = new URL(request.url);
   const next = safeNext(searchParams.get("next"));
+  // A jelszó-visszaállító link bármilyen hibájánál ugyanaz a teendő: kódot kérni.
+  const recovery = next === "/reset-password";
 
   const fail = (reason: string) =>
-    NextResponse.redirect(`${origin}/login?error=${encodeURIComponent(reason)}`);
+    NextResponse.redirect(
+      `${origin}/login?error=${encodeURIComponent(recovery ? "jelszo-link" : reason)}`
+    );
 
   // A Supabase maga is küldhet hibát (pl. tényleg lejárt link).
   const supabaseError = searchParams.get("error_code") ?? searchParams.get("error");

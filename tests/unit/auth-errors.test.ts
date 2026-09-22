@@ -24,6 +24,17 @@ describe("translateAuthError", () => {
     expect(translateAuthError("Email not confirmed")).toContain("erősítsd meg");
   });
 
+  it("az új jelszó beállításának hibáit is magyarul mondja", () => {
+    expect(translateAuthError("New password should be different from the old password.")).toContain(
+      "nem lehet ugyanaz"
+    );
+    expect(
+      translateAuthError("Password should contain at least one character of each: abc, ABC, 0123456789")
+    ).toContain("túl gyenge");
+    expect(translateAuthError("Password is known to be weak and easy to guess")).toContain("túl gyenge");
+    expect(translateAuthError("Auth session missing!")).toContain("Lejárt a munkamenet");
+  });
+
   it("ismeretlen üzenetet változatlanul hagy", () => {
     expect(translateAuthError("Valami egészen más")).toBe("Valami egészen más");
   });

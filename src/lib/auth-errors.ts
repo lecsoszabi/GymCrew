@@ -8,6 +8,12 @@ export function translateAuthError(msg: string): string {
   if (m.includes("user already registered") || m.includes("already been registered"))
     return "Ezzel az e-maillel már van fiók. Lépj be inkább.";
   if (m.includes("password should be at least")) return "A jelszó túl rövid (min. 8 karakter).";
+  if (m.includes("should be different from the old password"))
+    return "Az új jelszó nem lehet ugyanaz, mint a régi.";
+  if (m.includes("password should contain") || m.includes("weak") || m.includes("easy to guess"))
+    return "Ez a jelszó túl gyenge. Válassz hosszabbat, betűkkel és számokkal vegyesen.";
+  if (m.includes("auth session missing") || m.includes("session_not_found"))
+    return "Lejárt a munkamenet. Kérj új kódot az „Elfelejtett jelszó?” gombbal.";
   if (m.includes("unable to validate email") || m.includes("invalid email"))
     return "Ez nem érvényes e-mail cím.";
   const wait = retryAfterSeconds(msg);
