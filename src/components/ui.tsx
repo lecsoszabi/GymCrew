@@ -1,6 +1,7 @@
 "use client";
 
-import { useState, useTransition } from "react";
+import { useEffect, useState, useTransition } from "react";
+import { createPortal } from "react-dom";
 
 export type ActionResult = { ok: true } | { ok: false; error: string };
 
@@ -86,7 +87,13 @@ export function EmptyState({
   );
 }
 
-/** Egyszerű, mobilbarát alsó lap (bottom sheet) / középre igazított dialógus. */
+/**
+ * Egyszerű, mobilbarát alsó lap (bottom sheet) / középre igazított dialógus.
+ *
+ * A <body> alá kerül (portál), nem oda, ahol a komponens van: így a görgetésre
+ * éppen előtűnő, még áttetsző vagy elcsúsztatott szakasz sem teheti a lapot
+ * áttetszővé, és nem is viheti el a helyéről.
+ */
 export function Sheet({
   open,
   onClose,
@@ -98,9 +105,12 @@ export function Sheet({
   title?: string;
   children: React.ReactNode;
 }) {
-  if (!open) return null;
+  // A portálhoz kell a document, ezért csak a hidratálás után rajzolunk.
+  const [mounted, setMounted] = useState(false);
+  useEffect(() => setMounted(true), []);
+  if (!open || !mounted) return null;
 
-  return (
+  return createPortal(
     <div className="fixed inset-0 z-50 flex items-end justify-center sm:items-center">
       <div
         className="absolute inset-0 bg-black/70 backdrop-blur-sm"
@@ -128,7 +138,8 @@ export function Sheet({
         )}
         {children}
       </div>
-    </div>
+    </div>,
+    document.body
   );
 }
 

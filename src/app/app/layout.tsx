@@ -35,7 +35,7 @@ export default async function AppLayout({ children }: { children: React.ReactNod
 
       <div className="min-w-0 flex-1">
         {/* Mobil fejléc */}
-        <header className="sticky top-0 z-30 flex items-center justify-between border-b border-line bg-ink/95 px-4 py-3 backdrop-blur-md md:hidden">
+        <header data-scroll-header className="sticky top-0 z-30 flex items-center justify-between border-b border-line bg-ink/95 px-4 py-3 backdrop-blur-md md:hidden">
           <Link href="/app">
             <BrandMark />
           </Link>
@@ -44,7 +44,7 @@ export default async function AppLayout({ children }: { children: React.ReactNod
           </Link>
         </header>
 
-        <main className="mx-auto w-full max-w-3xl px-4 pb-28 pt-5 md:px-8 md:pb-12 md:pt-8">
+        <main data-reveal className="mx-auto w-full max-w-3xl px-4 pb-28 pt-5 md:px-8 md:pb-12 md:pt-8">
           {children}
         </main>
       </div>

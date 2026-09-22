@@ -55,8 +55,10 @@ test("az alsó menüvel minden fő oldal elérhető", async ({ page }) => {
 
 test("az alsó menü nem takarja el az oldal alját", async ({ page }) => {
   await page.goto("/app/profile");
-  await page.evaluate(() => window.scrollTo(0, document.body.scrollHeight));
   const kilepes = page.getByRole("button", { name: "Kijelentkezés" });
+  // Előbb a betöltés-csontváz látszik; csak a valódi tartalom után van mit görgetni.
+  await expect(kilepes).toBeVisible();
+  await page.evaluate(() => window.scrollTo(0, document.body.scrollHeight));
   await expect(kilepes).toBeInViewport();
   const gomb = await kilepes.boundingBox();
   const menu = await page.locator("nav").last().boundingBox();
