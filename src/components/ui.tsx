@@ -25,7 +25,7 @@ export function useAction() {
 export function ErrorNote({ children }: { children: React.ReactNode }) {
   if (!children) return null;
   return (
-    <p role="alert" className="rounded-lg bg-no/10 px-3 py-2 text-sm text-no">
+    <p role="alert" className="rounded-ui bg-no/10 px-3 py-2 text-sm text-no">
       {children}
     </p>
   );
@@ -62,7 +62,7 @@ export function Badge({
   };
   return (
     <span
-      className={`inline-flex items-center gap-1 rounded-full px-2.5 py-1 text-[11px] font-bold uppercase tracking-wide ${tones[tone]}`}
+      className={`inline-flex items-center gap-1 rounded-ui px-2.5 py-1 text-[11px] font-bold uppercase tracking-wide ${tones[tone]}`}
     >
       {children}
     </span>
@@ -146,7 +146,7 @@ export function Sheet({
         aria-modal="true"
         aria-label={title}
         tabIndex={-1}
-        className="animate-fade-up relative max-h-[92dvh] w-full max-w-md overflow-y-auto overscroll-contain rounded-t-3xl border border-line bg-surface p-5 sm:rounded-3xl"
+        className="animate-fade-up relative max-h-[92dvh] w-full max-w-md overflow-y-auto overscroll-contain rounded-t-ui border border-line bg-surface p-5 sm:rounded-ui"
         style={{ paddingBottom: "max(1.25rem, env(safe-area-inset-bottom))" }}
       >
         {title && <h2 className="mb-4 pr-12 text-lg font-bold tracking-tight">{title}</h2>}
@@ -154,7 +154,7 @@ export function Sheet({
           <button
             onClick={onClose}
             aria-label="Bezárás"
-            className="absolute right-3 top-3 flex h-11 w-11 items-center justify-center rounded-full bg-surface-2 text-muted"
+            className="absolute right-3 top-3 flex h-11 w-11 items-center justify-center rounded-ui bg-surface-2 text-muted"
           >
             <svg viewBox="0 0 24 24" className="h-4 w-4" fill="none" stroke="currentColor" strokeWidth="2.4">
               <path d="M6 6l12 12M18 6L6 18" strokeLinecap="round" />

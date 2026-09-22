@@ -110,7 +110,7 @@ export default function GroupManager({
           className="card flex w-full items-center justify-between gap-3 p-5 text-left transition hover:border-accent-dim"
         >
           <span>
-            <span className="block font-mono text-3xl font-bold tracking-[0.25em] text-accent">
+            <span className="block font-display text-4xl font-bold tracking-[0.2em] tabular-nums text-accent">
               {group.inviteCode}
             </span>
             <span className="mt-1 block text-xs text-muted">
@@ -176,14 +176,14 @@ export default function GroupManager({
               {isOwner && m.id !== me && (
                 <div className="flex gap-1.5">
                   <button
-                    className="rounded-lg bg-surface-2 px-2.5 py-2 text-[11px] font-semibold text-muted"
+                    className="rounded-ui bg-surface-2 px-2.5 py-2 text-[11px] font-semibold text-muted"
                     disabled={pending}
                     onClick={() => setPendingAction({ kind: "owner", member: m })}
                   >
                     Főnök lesz
                   </button>
                   <button
-                    className="rounded-lg bg-no/10 px-2.5 py-2 text-[11px] font-semibold text-no"
+                    className="rounded-ui bg-no/10 px-2.5 py-2 text-[11px] font-semibold text-no"
                     disabled={pending}
                     onClick={() => setPendingAction({ kind: "remove", member: m })}
                   >
@@ -231,7 +231,7 @@ export default function GroupManager({
                 {invites.map((i) => (
                   <div
                     key={i.id}
-                    className="flex items-center gap-2 rounded-lg bg-surface-2 px-3 py-2.5"
+                    className="flex items-center gap-2 rounded-ui bg-surface-2 px-3 py-2.5"
                   >
                     <span className="min-w-0 flex-1 truncate text-sm">{i.email}</span>
                     <Badge>Függőben</Badge>

@@ -96,7 +96,7 @@ export function WhenPicker({
                 onChange({ day: d.key, minutes: nextMinutes });
               }}
               aria-pressed={on}
-              className={`flex min-w-[76px] shrink-0 flex-col items-center rounded-xl border px-3 py-2.5 transition disabled:opacity-35 ${
+              className={`flex min-w-[76px] shrink-0 flex-col items-center rounded-ui border px-3 py-2.5 transition disabled:opacity-35 ${
                 on ? "border-accent bg-accent text-ink" : "border-line bg-surface-2 text-fg"
               }`}
             >
@@ -125,7 +125,7 @@ export function WhenPicker({
           ))}
         </select>
       ) : (
-        <p className="rounded-xl bg-surface-2 px-4 py-3 text-sm text-muted">
+        <p className="rounded-ui bg-surface-2 px-4 py-3 text-sm text-muted">
           {todayOnly
             ? "Mára már késő új időponthoz. Holnapra a Tervben javasolhatsz."
             : "Mára már késő. Válassz egy másik napot."}

@@ -84,7 +84,7 @@ export default function NewPasswordForm({ email }: { email: string }) {
       </div>
 
       {error && (
-        <p role="alert" className="rounded-lg bg-no/10 px-3 py-2.5 text-sm text-no">
+        <p role="alert" className="rounded-ui bg-no/10 px-3 py-2.5 text-sm text-no">
           {error}
         </p>
       )}

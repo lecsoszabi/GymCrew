@@ -136,7 +136,7 @@ export default function LoginForm() {
   return (
     <div className="card p-5 animate-fade-up">
       {linkHiba && !linkHibaKezelve && (
-        <div className={`mb-4 rounded-lg px-3 py-2.5 ${linkMegerositve ? "bg-accent/10" : "bg-maybe/10"}`}>
+        <div className={`mb-4 rounded-ui px-3 py-2.5 ${linkMegerositve ? "bg-accent/10" : "bg-maybe/10"}`}>
           <p
             role="alert"
             className={`text-sm leading-relaxed ${linkMegerositve ? "text-accent" : "text-maybe"}`}
@@ -185,7 +185,7 @@ export default function LoginForm() {
         </div>
       )}
 
-      <div className="mb-5 grid grid-cols-2 gap-1 rounded-xl bg-surface-2 p-1">
+      <div className="mb-5 grid grid-cols-2 gap-1 rounded-ui bg-surface-2 p-1">
         {(["signin", "signup"] as Mode[]).map((m) => (
           <button
             key={m}
@@ -194,7 +194,7 @@ export default function LoginForm() {
               setMode(m);
               setError(null);
             }}
-            className={`rounded-lg py-3 text-sm font-semibold transition ${
+            className={`rounded-ui py-3 text-sm font-semibold transition ${
               mode === m ? "bg-accent text-ink" : "text-muted hover:text-fg"
             }`}
           >
@@ -279,7 +279,7 @@ export default function LoginForm() {
               />
               <span
                 aria-hidden
-                className="h-5 w-5 rounded-md border border-muted bg-surface-2 transition peer-checked:border-accent peer-checked:bg-accent peer-focus-visible:outline-2 peer-focus-visible:outline-offset-2 peer-focus-visible:outline-accent peer-focus-visible:outline-solid"
+                className="h-5 w-5 rounded-ui border border-muted bg-surface-2 transition peer-checked:border-accent peer-checked:bg-accent peer-focus-visible:outline-2 peer-focus-visible:outline-offset-2 peer-focus-visible:outline-accent peer-focus-visible:outline-solid"
               />
               <svg
                 viewBox="0 0 24 24"
@@ -309,7 +309,7 @@ export default function LoginForm() {
         )}
 
         {error && (
-          <p role="alert" className="rounded-lg bg-no/10 px-3 py-2.5 text-sm text-no">
+          <p role="alert" className="rounded-ui bg-no/10 px-3 py-2.5 text-sm text-no">
             {error}
           </p>
         )}

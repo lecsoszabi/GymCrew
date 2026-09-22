@@ -140,7 +140,7 @@ export default function PlanClient({
                 onClick={() => openProposal(nextDateForWeekday(s.weekday, s.start))}
                 className="card flex w-full items-center gap-3 p-4 text-left transition hover:border-accent-dim"
               >
-                <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-accent/12 text-xs font-bold text-accent">
+                <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-ui bg-accent/12 text-xs font-bold text-accent">
                   {WEEKDAYS[s.weekday].slice(0, 3)}
                 </span>
                 <span className="min-w-0 flex-1">
@@ -239,7 +239,7 @@ export default function PlanClient({
           </div>
 
           {isOwner && gyms.length > 0 && (
-            <details className="rounded-xl border border-line bg-surface-2 p-3">
+            <details className="rounded-ui border border-line bg-surface-2 p-3">
               <summary className="cursor-pointer text-sm font-semibold text-muted">
                 Másik terembe mennénk?
               </summary>

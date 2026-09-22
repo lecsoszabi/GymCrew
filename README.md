@@ -178,6 +178,17 @@ logója is. Ha a rajz változik:
 node scripts/ikonok.mjs
 ```
 
+**Betűk:** Barlow a szövegekhez, Barlow Condensed a címekhez, a nagy számokhoz és a
+kódokhoz. Az app a `next/font`-tal tölti be őket (`src/app/layout.tsx`, latin és
+latin-ext készlet a magyar ő és ű miatt): a fájlokat a build letölti, és a saját
+domainünkről szolgálja ki, futás közben nincs kérés a Google felé. A levelek és az
+ikonszkript a `public/fonts` fájljait használja; ezeket a `node scripts/betuk.mjs`
+tölti le újra. A Gmail webes betűt nem tölt be, ott a rendszerbetű marad.
+
+**Sarkok:** mindenhol egyetlen, 4 px-es lekerekítés (`--radius-ui`, a `rounded-ui`
+osztály). Kör csak a profilkép és az élő pötty. Egy egységteszt figyeli, hogy ne
+kerüljön vissza más lekerekítés.
+
 ---
 
 ## Tesztek

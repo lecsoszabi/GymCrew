@@ -129,7 +129,7 @@ export default function AdatvedelemPage() {
         </p>
         <div className="space-y-3">
           <div className="card p-4">
-            <h3 className="font-mono text-sm font-semibold text-fg">sb-…-auth-token</h3>
+            <h3 className="text-sm font-semibold text-fg">sb-…-auth-token</h3>
             <p className="mt-1.5 text-sm text-muted">
               A bejelentkezésed: ettől maradsz belépve. Szükséges süti, a GymCrew saját sütije.
               Több részre bontva is tárolódhat. Legfeljebb 400 napig él, kijelentkezéskor
@@ -137,7 +137,7 @@ export default function AdatvedelemPage() {
             </p>
           </div>
           <div className="card p-4">
-            <h3 className="font-mono text-sm font-semibold text-fg">sb-…-code-verifier</h3>
+            <h3 className="text-sm font-semibold text-fg">sb-…-code-verifier</h3>
             <p className="mt-1.5 text-sm text-muted">
               A regisztráció és a jelszó-visszaállítás biztonsági kulcsa: ezzel ellenőrzi a
               bejelentkezés, hogy a folyamatot tényleg te kezdted. Szükséges süti, a GymCrew saját
@@ -145,7 +145,7 @@ export default function AdatvedelemPage() {
             </p>
           </div>
           <div className="card p-4">
-            <h3 className="font-mono text-sm font-semibold text-fg">{CONSENT_COOKIE}</h3>
+            <h3 className="text-sm font-semibold text-fg">{CONSENT_COOKIE}</h3>
             <p className="mt-1.5 text-sm text-muted">
               Megjegyzi, hogy láttad ezt a süti-tájékoztatót, így nem jelenik meg újra. Szükséges
               süti, a GymCrew saját sütije. Egy évig él.

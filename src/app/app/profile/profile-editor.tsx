@@ -150,17 +150,17 @@ export default function ProfileEditor({
           {(bmi || age || profile.sex) && (
             <div className="flex flex-wrap gap-2 text-xs text-muted">
               {bmi && (
-                <span className="rounded-lg bg-surface-2 px-2.5 py-1.5">
+                <span className="rounded-ui bg-surface-2 px-2.5 py-1.5">
                   BMI <span className="font-semibold text-fg">{bmi.toFixed(1)}</span>
                 </span>
               )}
               {age !== null && (
-                <span className="rounded-lg bg-surface-2 px-2.5 py-1.5">
+                <span className="rounded-ui bg-surface-2 px-2.5 py-1.5">
                   <span className="font-semibold text-fg">{age}</span> éves
                 </span>
               )}
               {profile.sex && (
-                <span className="rounded-lg bg-surface-2 px-2.5 py-1.5">
+                <span className="rounded-ui bg-surface-2 px-2.5 py-1.5">
                   {SEX_LABEL[profile.sex]}
                 </span>
               )}
@@ -174,7 +174,7 @@ export default function ProfileEditor({
                 <button
                   key={g.v}
                   onClick={() => setGoal(goal === g.v ? null : g.v)}
-                  className={`h-11 rounded-xl border text-xs font-semibold transition ${
+                  className={`h-11 rounded-ui border text-xs font-semibold transition ${
                     goal === g.v
                       ? "border-accent bg-accent text-ink"
                       : "border-line bg-surface-2 text-muted"
@@ -193,7 +193,7 @@ export default function ProfileEditor({
                 <button
                   key={l.v}
                   onClick={() => setLevel(level === l.v ? null : l.v)}
-                  className={`h-11 rounded-xl border text-xs font-semibold transition ${
+                  className={`h-11 rounded-ui border text-xs font-semibold transition ${
                     level === l.v
                       ? "border-accent bg-accent text-ink"
                       : "border-line bg-surface-2 text-muted"
@@ -207,7 +207,7 @@ export default function ProfileEditor({
 
           <ErrorNote>{error}</ErrorNote>
           {saved && !dirty && (
-            <p className="rounded-lg bg-yes/10 px-3 py-2 text-sm text-yes">Mentve ✓</p>
+            <p className="rounded-ui bg-yes/10 px-3 py-2 text-sm text-yes">Mentve ✓</p>
           )}
 
           <button
@@ -277,7 +277,7 @@ export default function ProfileEditor({
 function MiniStat({ label, value }: { label: string; value: string | number }) {
   return (
     <div className="card p-4 text-center">
-      <p className="text-xl font-bold leading-none tabular-nums">{value}</p>
+      <p className="font-display text-2xl font-bold leading-none tabular-nums">{value}</p>
       <p className="mt-1.5 text-[10px] uppercase tracking-wide text-muted">{label}</p>
     </div>
   );

@@ -79,3 +79,45 @@ test.describe("Egységes arculat", () => {
     }
   });
 });
+
+test.describe("Betűk és sarkok", () => {
+  test("a szöveg Barlow, a címek Barlow Condensed", async ({ page }) => {
+    await page.goto("/login");
+    const [szoveg, cim] = await page.evaluate(() => [
+      getComputedStyle(document.body).fontFamily,
+      getComputedStyle(document.querySelector("h1")!).fontFamily,
+    ]);
+    expect(szoveg).toMatch(/Barlow/);
+    expect(szoveg).not.toMatch(/Condensed/);
+    expect(cim).toMatch(/Barlow.?Condensed/);
+  });
+
+  test("a magyar ő és ű is Barlow-val jelenik meg (a latin-ext készlet betöltődik)", async ({ page }) => {
+    await page.goto("/adatvedelem"); // tele ő-vel és ű-vel
+    await page.evaluate(() => document.fonts.ready);
+    const kiterjesztett = await page.evaluate(() =>
+      [...document.fonts]
+        .filter((f) => /Barlow/.test(f.family) && /U\+0?100-0?2BA/i.test(f.unicodeRange))
+        .map((f) => ({ family: f.family, status: f.status }))
+    );
+    expect(kiterjesztett.length).toBeGreaterThan(0);
+    expect(kiterjesztett.some((f) => f.status === "loaded")).toBe(true);
+  });
+
+  test("a kártya, a gomb és a mező sarka 4 px", async ({ page }) => {
+    await page.goto("/login");
+    const sugar = (sel: string) => page.locator(sel).first().evaluate((e) => getComputedStyle(e).borderRadius);
+    expect(await sugar(".card")).toBe("4px");
+    expect(await sugar("form .btn-primary")).toBe("4px");
+    expect(await sugar("#email")).toBe("4px");
+  });
+
+  test("a levelek betűfájljai bejelentkezés nélkül is elérhetők, más domainről is", async ({ request }) => {
+    for (const f of ["barlow-400-latin.woff2", "barlow-700-latin-ext.woff2", "barlow-condensed-700-latin.woff2"]) {
+      const res = await request.get(`/fonts/${f}`);
+      expect(res.status(), f).toBe(200);
+      expect(res.headers()["content-type"], f).toContain("font/woff2");
+      expect(res.headers()["access-control-allow-origin"], f).toBe("*");
+    }
+  });
+});

@@ -47,7 +47,7 @@ export function GymPicker({
             key={g.id}
             type="button"
             onClick={() => onChange(g.id)}
-            className={`flex w-full items-center gap-3 rounded-xl border px-3.5 py-3 text-left transition ${
+            className={`flex w-full items-center gap-3 rounded-ui border px-3.5 py-3 text-left transition ${
               value === g.id
                 ? "border-accent bg-accent/10"
                 : "border-line bg-surface-2 hover:border-accent-dim"

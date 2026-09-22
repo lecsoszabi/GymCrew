@@ -52,7 +52,7 @@ export function SessionRow({
         aria-expanded={open}
       >
         <div className="min-w-0 flex-1">
-          <p className={`font-semibold ${cancelled ? "line-through" : ""}`}>
+          <p className={`font-display text-lg font-bold leading-tight tabular-nums ${cancelled ? "line-through" : ""}`}>
             {formatWhen(session.starts_at)}
           </p>
           <p className="mt-0.5 truncate text-xs text-muted">
@@ -133,7 +133,7 @@ export function SessionRow({
           </div>
 
           {no.length > 0 && !past && (
-            <p className="mb-3 rounded-lg bg-no/8 px-3 py-2 text-xs leading-relaxed text-no/90">
+            <p className="mb-3 rounded-ui bg-no/8 px-3 py-2 text-xs leading-relaxed text-no/90">
               {no.length === 1 ? "Egy nem" : `${no.length} nem`} érkezett. Nézd meg az indokot, és
               javasolj másik időpontot.
             </p>

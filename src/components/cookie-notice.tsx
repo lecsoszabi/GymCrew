@@ -32,7 +32,7 @@ export function CookieNotice() {
       role="region"
       aria-label="Süti-tájékoztató"
       data-cookie-notice
-      className="animate-fade-up fixed inset-x-3 z-[45] mx-auto max-w-md rounded-2xl border border-line bg-surface p-4 shadow-[0_16px_40px_-12px_rgb(0_0_0/0.85)]"
+      className="animate-fade-up fixed inset-x-3 z-[45] mx-auto max-w-md rounded-ui border border-line bg-surface p-4 shadow-[0_16px_40px_-12px_rgb(0_0_0/0.85)]"
     >
       <p className="text-sm font-semibold">Sütik</p>
       <p className="mt-1 text-xs leading-relaxed text-muted">

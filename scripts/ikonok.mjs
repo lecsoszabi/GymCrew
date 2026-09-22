@@ -2,7 +2,7 @@
 // Ha a logó változik, ezt kell újrafuttatni:  node scripts/ikonok.mjs
 // A PNG-ket a Playwright böngészője rajzolja ki, így nem kell külön képszerkesztő.
 import { chromium } from "@playwright/test";
-import { mkdirSync, rmSync, writeFileSync } from "node:fs";
+import { mkdirSync, readFileSync, rmSync, writeFileSync } from "node:fs";
 import {
   BADGE_SHIFT,
   CITY,
@@ -10,16 +10,25 @@ import {
   LIME,
   TILE,
   TILE_BORDER,
+  TILE_RADIUS,
   dumbbellMarkup,
 } from "../src/lib/brand-shape.ts";
 
-const FONT = "-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif";
+// A SZEGED felirat betűje: ugyanaz a Barlow Condensed, mint az appban
+// (a public/fonts fájljai, lásd scripts/betuk.mjs).
+const FONT = "'Barlow Condensed'";
+const FONT_FACES = ["latin", "latin-ext"]
+  .map((subset) => {
+    const data = readFileSync(`public/fonts/barlow-condensed-700-${subset}.woff2`).toString("base64");
+    return `@font-face{font-family:'Barlow Condensed';font-weight:700;src:url(data:font/woff2;base64,${data}) format('woff2')}`;
+  })
+  .join("");
 const svg = (body) => `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">${body}</svg>`;
 const dumbbell = dumbbellMarkup({ detail: true, cutColor: TILE });
 
-// Böngészőfül és telepített app: lekerekített csempe, középen a súlyzó, felirat nélkül.
+// Böngészőfül és telepített app: a csempe, középen a súlyzó, felirat nélkül.
 const icon = svg(
-  `<rect width="512" height="512" rx="112" fill="${TILE}"/>` +
+  `<rect width="512" height="512" rx="${TILE_RADIUS}" fill="${TILE}"/>` +
     `<g transform="translate(0 56)">${dumbbell}</g>`
 );
 
@@ -33,7 +42,7 @@ const fullBleed = (scale) =>
 // A levelek logója: ugyanaz a csempe, mint a belépő oldalakon (BrandBadge), a levél hátterén.
 const badge = svg(
   `<rect width="512" height="512" fill="${INK}"/>` +
-    `<rect x="3" y="3" width="506" height="506" rx="110" fill="${TILE}" stroke="${TILE_BORDER}" stroke-width="6"/>` +
+    `<rect x="3" y="3" width="506" height="506" rx="${TILE_RADIUS}" fill="${TILE}" stroke="${TILE_BORDER}" stroke-width="6"/>` +
     `<g transform="translate(0 ${BADGE_SHIFT})">${dumbbell}</g>` +
     `<text x="${CITY.x}" y="${CITY.y}" text-anchor="middle" font-family="${FONT}" font-size="${CITY.size}"` +
     ` font-weight="${CITY.weight}" letter-spacing="${CITY.letterSpacing}" fill="${LIME}">${CITY.text}</text>`
@@ -45,8 +54,10 @@ const page = await browser.newPage({ deviceScaleFactor: 1 });
 async function png(markup, size, out) {
   await page.setViewportSize({ width: size, height: size });
   await page.setContent(
-    `<!doctype html><html><body style="margin:0">${markup.replace("<svg ", `<svg width="${size}" height="${size}" `)}</body></html>`
+    `<!doctype html><html><head><style>${FONT_FACES}</style></head><body style="margin:0">${markup.replace("<svg ", `<svg width="${size}" height="${size}" `)}</body></html>`
   );
+  // Megvárjuk, hogy a SZEGED felirat betűje betöltődjön, különben tartalék betűvel rajzolna.
+  await page.evaluate(() => document.fonts.load("700 62px 'Barlow Condensed'"));
   await page.locator("svg").screenshot({ path: out, omitBackground: true });
   console.log("✓", out);
 }

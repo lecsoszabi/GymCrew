@@ -28,7 +28,7 @@ export default function GroupGateForms({
             {pendingInvites.map((inv) => (
               <div
                 key={inv.id}
-                className="flex items-center gap-3 rounded-xl border border-accent/30 bg-accent/5 p-3"
+                className="flex items-center gap-3 rounded-ui border border-accent/30 bg-accent/5 p-3"
               >
                 <p className="min-w-0 flex-1 truncate text-sm font-semibold">{inv.groupName}</p>
                 <button
@@ -51,12 +51,12 @@ export default function GroupGateForms({
         </section>
       )}
 
-      <div className="grid grid-cols-2 gap-1 rounded-xl bg-surface-2 p-1">
+      <div className="grid grid-cols-2 gap-1 rounded-ui bg-surface-2 p-1">
         {(["create", "join"] as const).map((t) => (
           <button
             key={t}
             onClick={() => setTab(t)}
-            className={`rounded-lg py-2.5 text-sm font-semibold transition ${
+            className={`rounded-ui py-2.5 text-sm font-semibold transition ${
               tab === t ? "bg-accent text-ink" : "text-muted"
             }`}
           >
@@ -104,7 +104,7 @@ export default function GroupGateForms({
             </label>
             <input
               id="join-code"
-              className="field text-center font-mono text-2xl tracking-[0.3em]"
+              className="field text-center font-display text-3xl font-bold tracking-[0.3em] tabular-nums"
               value={code}
               onChange={(e) => setCode(e.target.value.toUpperCase().slice(0, 6))}
               placeholder="ABC123"

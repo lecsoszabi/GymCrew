@@ -25,7 +25,7 @@ export function NavBar({ variant }: { variant: "side" | "bottom" }) {
             <Link
               key={href}
               href={href}
-              className={`flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-semibold transition ${
+              className={`flex items-center gap-3 rounded-ui px-3 py-2.5 text-sm font-semibold transition ${
                 active ? "bg-accent/12 text-accent" : "text-muted hover:bg-surface hover:text-fg"
               }`}
             >

@@ -7,7 +7,8 @@ export async function middleware(request: NextRequest) {
 
 export const config = {
   matcher: [
-    // Minden útvonal, kivéve a statikus fájlokat és a képeket.
-    "/((?!_next/static|_next/image|favicon.ico|icon.svg|manifest.webmanifest|.*\\.(?:svg|png|jpg|jpeg|gif|webp)$).*)",
+    // Minden útvonal, kivéve a statikus fájlokat, a képeket és a betűfájlokat
+    // (ez utóbbiakat a levelezők bejelentkezés nélkül töltik be).
+    "/((?!_next/static|_next/image|favicon.ico|icon.svg|manifest.webmanifest|.*\\.(?:svg|png|jpg|jpeg|gif|webp|woff2)$).*)",
   ],
 };

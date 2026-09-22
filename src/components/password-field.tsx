@@ -22,7 +22,7 @@ export function PasswordField({
         aria-label="Megjelenítés"
         aria-pressed={shown}
         aria-controls={props.id}
-        className="absolute right-1 top-1/2 flex h-11 w-11 -translate-y-1/2 items-center justify-center rounded-lg text-muted transition hover:text-fg"
+        className="absolute right-1 top-1/2 flex h-11 w-11 -translate-y-1/2 items-center justify-center rounded-ui text-muted transition hover:text-fg"
       >
         <svg
           viewBox="0 0 24 24"

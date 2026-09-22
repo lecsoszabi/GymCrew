@@ -82,7 +82,7 @@ export default async function StatsPage() {
                   <div key={b.start} className="flex min-w-0 flex-1 flex-col items-center gap-2">
                     <div className="flex w-full flex-1 items-end justify-center">
                       <div
-                        className="w-full max-w-9 rounded-t-md bg-accent transition-all"
+                        className="w-full max-w-9 rounded-t-ui bg-accent transition-all"
                         style={{
                           height: `${Math.max(3, (b.total / maxBar) * 100)}%`,
                           opacity: b.total === 0 ? 0.18 : 1,
@@ -156,7 +156,7 @@ export default async function StatsPage() {
                   {s.weekdayCounts.map((n, d) => (
                     <div key={d} className="flex-1 text-center">
                       <div
-                        className="mx-auto h-8 w-full rounded"
+                        className="mx-auto h-8 w-full rounded-ui"
                         style={{
                           background: n === 0 ? "#1b1e24" : "#c8ff4d",
                           opacity: n === 0 ? 1 : 0.28 + 0.72 * (n / max),
@@ -248,7 +248,7 @@ function Stat({
   return (
     <div className={`card p-4 ${highlight ? "border-accent/35 bg-accent/5" : ""}`}>
       <p className="text-[10px] font-semibold uppercase tracking-wide text-muted">{label}</p>
-      <p className={`mt-1.5 text-2xl font-bold leading-none tabular-nums ${highlight ? "text-accent" : ""}`}>
+      <p className={`mt-1.5 font-display text-3xl font-bold leading-none tabular-nums ${highlight ? "text-accent" : ""}`}>
         {value}
       </p>
       {suffix && <p className="mt-1 text-[11px] text-muted">{suffix}</p>}

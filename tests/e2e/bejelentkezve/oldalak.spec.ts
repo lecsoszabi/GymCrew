@@ -78,3 +78,14 @@ test("a lenyíló lista ugyanolyan mező, mint a többi (iPhone-on is)", async (
   // Semmit nem mentünk: a lap bezárva marad üresen.
   await page.keyboard.press("Escape");
 });
+
+test("a címkék és a kártyák sarka 4 px, a profilkép kerek", async ({ page }) => {
+  await page.goto("/app");
+  await expect(page.locator("main h1").first()).toBeVisible();
+  const sugar = (sel: string) => page.locator(sel).first().evaluate((e) => getComputedStyle(e).borderRadius);
+  expect(await sugar("main .card")).toBe("4px");
+  // A profilkép kör: a sugár legalább a méret fele.
+  const kep = page.locator('header a[aria-label="Profil"] > span').first();
+  const [r, w] = await kep.evaluate((e) => [parseFloat(getComputedStyle(e).borderRadius), e.getBoundingClientRect().width]);
+  expect(r).toBeGreaterThanOrEqual(w / 2);
+});

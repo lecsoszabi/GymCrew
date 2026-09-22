@@ -57,7 +57,7 @@ function gymIcon() {
     iconAnchor: [22, 22],
     popupAnchor: [0, -25],
     // Ugyanaz a Dóm-súlyzó, mint a logóban, sötéten a lime csempén.
-    html: `<div style="width:44px;height:44px;border-radius:13px;background:${LIME};
+    html: `<div style="width:44px;height:44px;border-radius:4px;background:${LIME};
       display:flex;align-items:center;justify-content:center;box-shadow:0 4px 16px rgba(200,255,77,.35)">
       <svg viewBox="${BARE_VIEWBOX}" width="32" height="27">${dumbbellMarkup({ detail: false, cutColor: LIME, color: INK })}</svg></div>`,
   });
@@ -173,7 +173,7 @@ export default function MapCanvas({ gym, people }: { gym: GymPoint; people: Live
   );
 
   return (
-    <div className="h-[60vh] max-h-[560px] min-h-[320px] overflow-hidden rounded-2xl border border-line">
+    <div className="h-[60vh] max-h-[560px] min-h-[320px] overflow-hidden rounded-ui border border-line">
       <MapContainer
         center={center}
         zoom={14}

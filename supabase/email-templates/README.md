@@ -43,7 +43,9 @@ Beállítás hozzá (**Authentication → Sign In / Providers → Email**): az
 annyit mutat, amennyi be van állítva. Az *Email OTP Expiration* 3600 másodperc
 (1 óra); ennél hosszabbra ne állítsd.
 
-**Felépítés:** táblázatos elrendezés, minden stílus soron belül, semmi külső CSS.
+**Felépítés:** táblázatos elrendezés, a stílusok soron belül; a fejben csak a Barlow betűk
+`@font-face` szabályai vannak (`https://gymcrew.hu/fonts/…`, `scripts/betuk.mjs`). A
+sarkok 4 px-esek, mint az appban.
 Egyetlen kép van benne, a logó: `https://gymcrew.hu/email/logo.png` (ugyanaz a csempe,
 mint az app belépő oldalain; a `scripts/ikonok.mjs` rajzolja a logó közös rajzából).
 Alatta a „GymCrew” név szövegként áll, így képek nélkül is olvasható a fejléc.

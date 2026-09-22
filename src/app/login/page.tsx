@@ -18,7 +18,7 @@ export default function LoginPage() {
     >
       {isSupabaseConfigured() ? (
         <Suspense
-          fallback={<div className="h-72 animate-pulse rounded-2xl border border-line bg-surface" />}
+          fallback={<div className="h-72 animate-pulse rounded-ui border border-line bg-surface" />}
         >
           <LoginForm />
         </Suspense>
@@ -38,7 +38,7 @@ function SetupNotice() {
         Az app csak akkor enged be bárkit, ha megvan az adatbázis-kapcsolat. Két érték kell
         a <code className="text-accent">.env.local</code> fájlba:
       </p>
-      <pre className="mt-3 overflow-x-auto rounded-lg bg-surface-2 p-3 text-[11px] leading-relaxed text-muted">
+      <pre className="mt-3 overflow-x-auto rounded-ui bg-surface-2 p-3 text-[11px] leading-relaxed text-muted">
 {`NEXT_PUBLIC_SUPABASE_URL=...
 NEXT_PUBLIC_SUPABASE_ANON_KEY=...`}
       </pre>

@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { readdirSync, readFileSync } from "node:fs";
+import { existsSync, readdirSync, readFileSync } from "node:fs";
 
 /*
  * A Supabase-be feltöltött levelek forrása. Mind ugyanazt a fejlécet és
@@ -34,6 +34,20 @@ describe("e-mail sablonok", () => {
       const html = read(name);
       expect(html).not.toContain("—");
       expect(html).not.toMatch(/csoporttárs/);
+    });
+  }
+
+  for (const name of TEMPLATES) {
+    it(`${name}: Barlow betűk a gymcrew.hu-ról, 4 px-es sarkok`, () => {
+      const html = read(name);
+      const fajlok = [...html.matchAll(/url\('https:\/\/gymcrew\.hu\/fonts\/([^']+)'\)/g)].map((m) => m[1]);
+      expect(fajlok.length).toBe(6);
+      for (const f of fajlok) expect(existsSync(`public/fonts/${f}`), f).toBe(true);
+      expect(html).toContain("font-family:'Barlow',");
+      expect(html).toContain("font-family:'Barlow Condensed',");
+      expect(html).not.toContain("SF Mono");
+      const sugarak = [...html.matchAll(/border-radius:\s*([^;"]+)/g)].map((m) => m[1].trim());
+      expect(new Set(sugarak)).toEqual(new Set(["4px"]));
     });
   }
 

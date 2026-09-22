@@ -69,7 +69,7 @@ export function DailyPrompt({
         {members.map((m) => (
           <span
             key={m.id}
-            className={`flex items-center gap-2 rounded-full border py-1 pl-1 pr-3 text-sm ${
+            className={`flex items-center gap-2 rounded-ui border py-1 pl-1 pr-3 text-sm ${
               m.going ? "border-yes/40 bg-yes/10" : "border-line bg-surface-2"
             }`}
           >

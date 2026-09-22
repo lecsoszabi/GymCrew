@@ -1,6 +1,6 @@
 import Link from "next/link";
 import type { ReactNode } from "react";
-import { BADGE_SHIFT, BAR, BARE_VIEWBOX, CITY, HALF, LIME, TILE, TILE_BORDER } from "@/lib/brand-shape";
+import { BADGE_SHIFT, BAR, BARE_VIEWBOX, CITY, HALF, LIME, TILE, TILE_BORDER, TILE_RADIUS } from "@/lib/brand-shape";
 
 /** A súlyzó elemei a 512-es rácson (a rajz: src/lib/brand-shape.ts). */
 function Shapes({ detail, cutColor }: { detail: boolean; cutColor: string }) {
@@ -41,7 +41,7 @@ export function DumbbellDom({ className }: { className?: string }) {
 export function BrandBadge({ className }: { className?: string }) {
   return (
     <svg viewBox="0 0 512 512" className={className} aria-hidden data-brand="badge">
-      <rect x="3" y="3" width="506" height="506" rx="110" fill={TILE} stroke={TILE_BORDER} strokeWidth="6" />
+      <rect x="3" y="3" width="506" height="506" rx={TILE_RADIUS} fill={TILE} stroke={TILE_BORDER} strokeWidth="6" />
       <g transform={`translate(0 ${BADGE_SHIFT})`}>
         <Shapes detail cutColor={TILE} />
       </g>
@@ -53,6 +53,7 @@ export function BrandBadge({ className }: { className?: string }) {
         fontWeight={CITY.weight}
         letterSpacing={CITY.letterSpacing}
         fill={LIME}
+        style={{ fontFamily: "var(--font-display)" }}
       >
         {CITY.text}
       </text>
@@ -65,7 +66,7 @@ export function BrandMark({ size = "sm" }: { size?: "sm" | "md" }) {
   return (
     <span className="flex items-center gap-2" data-brand="mark">
       <DumbbellDom className={size === "md" ? "h-7 w-8" : "h-6 w-7"} />
-      <span className="text-sm font-bold tracking-tight">GymCrew</span>
+      <span className="font-display text-lg font-bold leading-none tracking-wide">GymCrew</span>
     </span>
   );
 }

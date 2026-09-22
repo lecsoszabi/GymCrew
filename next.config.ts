@@ -12,6 +12,15 @@ const nextConfig: NextConfig = {
   async headers() {
     return [
       {
+        // A levelek betűi: a levelezők másik domainről töltik be (CORS), és
+        // nem változnak, így sokáig gyorsítótárazhatók.
+        source: "/fonts/:file*",
+        headers: [
+          { key: "Access-Control-Allow-Origin", value: "*" },
+          { key: "Cache-Control", value: "public, max-age=31536000, immutable" },
+        ],
+      },
+      {
         source: "/:path*",
         headers: [
           // Az oldal nem ágyazható iframe-be → nincs kattintás-eltérítés.

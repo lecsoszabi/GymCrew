@@ -144,7 +144,7 @@ export default async function DashboardPage() {
             <div className="min-w-0 flex-1">
               <p className="text-sm font-semibold">Hívd meg a többieket</p>
               <p className="mt-0.5 text-xs text-muted">
-                Meghívókód: <span className="font-mono text-accent">{crew.group.invite_code}</span>
+                Meghívókód: <span className="font-display text-sm font-bold tracking-wider text-accent">{crew.group.invite_code}</span>
               </p>
             </div>
             <Link href="/app/group" className="btn btn-ghost shrink-0 px-3 text-xs">

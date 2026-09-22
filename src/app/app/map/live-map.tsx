@@ -14,7 +14,7 @@ import type { LivePing, Vote } from "@/lib/types";
 const MapCanvas = dynamic(() => import("@/components/map-canvas"), {
   ssr: false,
   loading: () => (
-    <div className="h-[60vh] max-h-[560px] min-h-[320px] animate-pulse rounded-2xl border border-line bg-surface" />
+    <div className="h-[60vh] max-h-[560px] min-h-[320px] animate-pulse rounded-ui border border-line bg-surface" />
   ),
 });
 

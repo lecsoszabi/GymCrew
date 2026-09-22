@@ -38,8 +38,14 @@ export const BOUNDS = { x: 62, y: 38, width: 388, height: 324 };
 /** Csak a súlyzó, kis margóval: ezzel a viewBox-szal a rajz kitölti a helyét. */
 export const BARE_VIEWBOX = `${BOUNDS.x - 8} ${BOUNDS.y - 8} ${BOUNDS.width + 16} ${BOUNDS.height + 16}`;
 
-/** A csempén a SZEGED felirat helye. A betűköz fele miatt kicsit jobbra tolva van középre. */
-export const CITY = { text: "SZEGED", x: 262, y: 454, size: 52, weight: 800, letterSpacing: 12 };
+/**
+ * A csempén a SZEGED felirat, Barlow Condensed betűvel. A betűköz fele miatt
+ * kicsit jobbra tolva van középre; a szélessége a régi feliratéval egyezik.
+ */
+export const CITY = { text: "SZEGED", x: 265, y: 456, size: 62, weight: 700, letterSpacing: 18 };
+
+/** A csempe sarka: a 112 px-es logón kb. 4 px, mint az app minden más sarka. */
+export const TILE_RADIUS = 18;
 
 /** A csempén a súlyzó eltolása, hogy alatta elférjen a felirat. */
 export const BADGE_SHIFT = 16;

@@ -99,7 +99,7 @@ export function CodeStep({
   return (
     <div className="card animate-fade-up p-6">
       <div className="text-center">
-        <div className="mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-2xl bg-accent/12">
+        <div className="mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-ui bg-accent/12">
           <svg viewBox="0 0 24 24" className="h-7 w-7 text-accent" fill="none" stroke="currentColor" strokeWidth="1.7">
             <rect x="2.5" y="5" width="19" height="14" rx="2.5" />
             <path d="m3.5 7 8.5 6 8.5-6" strokeLinecap="round" />
@@ -123,7 +123,7 @@ export function CodeStep({
         </label>
         <input
           id="otp"
-          className="field text-center font-mono text-2xl tracking-[0.3em] placeholder:font-sans placeholder:text-base placeholder:tracking-normal"
+          className="field text-center font-display text-3xl font-bold tracking-[0.3em] tabular-nums placeholder:font-sans placeholder:text-base placeholder:font-normal placeholder:tracking-normal"
           value={code}
           // Beillesztésnél a szóközt, kötőjelet is elhagyjuk. A hossz a Supabase
           // beállítása (6–10 jegy), ezért itt nem kötjük meg.
@@ -135,12 +135,12 @@ export function CodeStep({
         />
 
         {error && (
-          <p role="alert" className="mt-3 rounded-lg bg-no/10 px-3 py-2.5 text-sm text-no">
+          <p role="alert" className="mt-3 rounded-ui bg-no/10 px-3 py-2.5 text-sm text-no">
             {error}
           </p>
         )}
         {info && (
-          <p role="status" className="mt-3 rounded-lg bg-accent/10 px-3 py-2.5 text-sm text-accent">
+          <p role="status" className="mt-3 rounded-ui bg-accent/10 px-3 py-2.5 text-sm text-accent">
             {info}
           </p>
         )}

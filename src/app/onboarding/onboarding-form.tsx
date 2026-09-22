@@ -120,7 +120,7 @@ export default function OnboardingForm({
           {GOALS.map((g) => (
             <label key={g.v} className="cursor-pointer">
               <input type="radio" name="goal" value={g.v} className="peer sr-only" />
-              <span className="flex h-11 items-center justify-center rounded-xl border border-line bg-surface-2 px-2 text-center text-xs font-semibold text-muted transition peer-checked:border-accent peer-checked:bg-accent peer-checked:text-ink">
+              <span className="flex h-11 items-center justify-center rounded-ui border border-line bg-surface-2 px-2 text-center text-xs font-semibold text-muted transition peer-checked:border-accent peer-checked:bg-accent peer-checked:text-ink">
                 {g.l}
               </span>
             </label>
@@ -132,7 +132,7 @@ export default function OnboardingForm({
           {LEVELS.map((l) => (
             <label key={l.v} className="cursor-pointer">
               <input type="radio" name="experience_level" value={l.v} className="peer sr-only" />
-              <span className="flex items-center justify-between rounded-xl border border-line bg-surface-2 px-4 py-3 transition peer-checked:border-accent peer-checked:bg-accent/10">
+              <span className="flex items-center justify-between rounded-ui border border-line bg-surface-2 px-4 py-3 transition peer-checked:border-accent peer-checked:bg-accent/10">
                 <span className="text-sm font-semibold">{l.l}</span>
                 <span className="text-xs text-muted">{l.d}</span>
               </span>
@@ -142,7 +142,7 @@ export default function OnboardingForm({
       </section>
 
       {state.error && (
-        <p role="alert" className="rounded-xl bg-no/10 px-4 py-3 text-sm text-no">
+        <p role="alert" className="rounded-ui bg-no/10 px-4 py-3 text-sm text-no">
           {state.error}
         </p>
       )}

@@ -47,14 +47,14 @@ export function AvailabilityEditor({
           return (
             <div
               key={day}
-              className={`rounded-xl border p-3 transition ${
+              className={`rounded-ui border p-3 transition ${
                 on ? "border-accent/35 bg-accent/5" : "border-line bg-surface-2"
               }`}
             >
               <div className="flex items-center gap-3">
                 <button
                   onClick={() => update(day, on ? [] : [{ start: 17 * 60, end: 20 * 60 }])}
-                  className={`flex h-6 w-11 shrink-0 items-center rounded-full px-0.5 transition ${
+                  className={`flex h-6 w-11 shrink-0 items-center rounded-ui px-0.5 transition ${
                     on ? "bg-accent" : "bg-line"
                   }`}
                   role="switch"
@@ -62,7 +62,7 @@ export function AvailabilityEditor({
                   aria-label={`${label} ráérés`}
                 >
                   <span
-                    className={`h-5 w-5 rounded-full bg-ink transition ${on ? "translate-x-5" : ""}`}
+                    className={`h-5 w-5 rounded-[2px] bg-ink transition ${on ? "translate-x-5" : ""}`}
                   />
                 </button>
                 <span className="flex-1 text-sm font-semibold">{label}</span>

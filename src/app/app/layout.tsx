@@ -19,7 +19,7 @@ export default async function AppLayout({ children }: { children: React.ReactNod
 
         <Link
           href="/app/profile"
-          className="mt-auto flex items-center gap-3 rounded-xl border border-line bg-surface p-3 transition hover:border-accent-dim"
+          className="mt-auto flex items-center gap-3 rounded-ui border border-line bg-surface p-3 transition hover:border-accent-dim"
         >
           <Avatar url={crew.profile.avatar_url} name={crew.profile.display_name} size={36} />
           <span className="min-w-0">
