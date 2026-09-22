@@ -1,6 +1,7 @@
 import { defineConfig, devices } from "@playwright/test";
 import { existsSync } from "node:fs";
 import { MUNKAMENET_A } from "./tests/e2e/bejelentkezve/munkamenet";
+import { CONSENT_COOKIE, LEGAL_VERSION } from "./src/lib/legal";
 
 const PORT = 3100;
 const baseURL = process.env.E2E_BASE_URL ?? `http://localhost:${PORT}`;
@@ -16,6 +17,23 @@ const authBaseURL = process.env.AUTH_BASE_URL ?? "https://gymcrew.hu";
 const vanMunkamenet = existsSync(AUTH_A);
 const telefon = { ...devices["iPhone 13"], baseURL: authBaseURL, storageState: AUTH_A };
 
+/** A süti-tájékoztatót "már látta" a böngésző, így nem takarja a tesztelt felületet. */
+const sutiLatva = (url: string) => ({
+  cookies: [
+    {
+      name: CONSENT_COOKIE,
+      value: LEGAL_VERSION,
+      domain: new URL(url).hostname,
+      path: "/",
+      expires: Math.floor(Date.now() / 1000) + 3600,
+      httpOnly: false,
+      secure: url.startsWith("https"),
+      sameSite: "Lax" as const,
+    },
+  ],
+  origins: [],
+});
+
 export default defineConfig({
   testDir: "./tests/e2e",
   fullyParallel: true,
@@ -27,8 +45,8 @@ export default defineConfig({
     trace: "on-first-retry",
   },
   projects: [
-    { name: "asztali", testIgnore: /bejelentkezve\//, use: { ...devices["Desktop Chrome"] } },
-    { name: "mobil", testIgnore: /bejelentkezve\//, use: { ...devices["iPhone 13"] } },
+    { name: "asztali", testIgnore: /bejelentkezve\//, use: { ...devices["Desktop Chrome"], storageState: sutiLatva(baseURL) } },
+    { name: "mobil", testIgnore: /bejelentkezve\//, use: { ...devices["iPhone 13"], storageState: sutiLatva(baseURL) } },
     ...(vanMunkamenet
       ? [
           // Előbb megújítja és visszamenti a munkamenetet, utána jönnek a tesztek.

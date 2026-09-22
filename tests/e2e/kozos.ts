@@ -22,10 +22,18 @@ export async function kisCelpontok(page: Page) {
     [...document.querySelectorAll('a[href], button, input:not([type="hidden"]), select, textarea, [role="button"]')]
       .filter((el) => {
         const r = el.getBoundingClientRect();
-        return r.width > 1 && r.height > 1 && getComputedStyle(el).visibility !== "hidden" && !el.closest(".leaflet-control-attribution");
+        return (
+          r.width > 1 &&
+          r.height > 1 &&
+          getComputedStyle(el).visibility !== "hidden" &&
+          !el.closest(".leaflet-control-attribution") &&
+          !el.hasAttribute("data-inline") // mondatba ágyazott link: WCAG 2.5.8 kivétel
+        );
       })
       .map((el) => {
-        const r = el.getBoundingClientRect();
+        // A jelölőnégyzetet a címkéje egészén lehet koppintani.
+        const cimke = el instanceof HTMLInputElement && (el.type === "checkbox" || el.type === "radio") ? el.closest("label") : null;
+        const r = (cimke ?? el).getBoundingClientRect();
         let w = r.width;
         let h = r.height;
         if (el.classList.contains("tap")) {

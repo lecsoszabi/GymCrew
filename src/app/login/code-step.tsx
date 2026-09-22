@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { createClient } from "@/lib/supabase/client";
+import { clearCodeVerifiers, createClient } from "@/lib/supabase/client";
 import { retryAfterSeconds, translateAuthError } from "@/lib/auth-errors";
 
 const RESEND_WAIT = 60;
@@ -76,6 +76,7 @@ export function CodeStep({
       return;
     }
     // Sikernél a gomb foglalt marad, amíg a következő oldal betölt.
+    clearCodeVerifiers();
     onVerified();
   }
 

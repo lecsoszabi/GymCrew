@@ -1,3 +1,4 @@
+import Link from "next/link";
 import type { ReactNode } from "react";
 import { BADGE_SHIFT, BAR, BARE_VIEWBOX, CITY, HALF, LIME, TILE, TILE_BORDER } from "@/lib/brand-shape";
 
@@ -109,6 +110,14 @@ export function AuthShell({
           )}
         </div>
         {children}
+        <nav aria-label="Jogi dokumentumok" className="mt-8 flex justify-center gap-6 text-xs">
+          <Link href="/feltetelek" className="tap font-semibold text-muted hover:text-fg">
+            Felhasználási feltételek
+          </Link>
+          <Link href="/adatvedelem" className="tap font-semibold text-muted hover:text-fg">
+            Adatkezelés
+          </Link>
+        </nav>
       </div>
     </main>
   );

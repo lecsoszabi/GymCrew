@@ -40,6 +40,7 @@ export function NavBar({ variant }: { variant: "side" | "bottom" }) {
 
   return (
     <nav
+      data-bottom-nav
       className="fixed inset-x-0 bottom-0 z-40 border-t border-line bg-ink/95 backdrop-blur-md md:hidden"
       style={{ paddingBottom: "env(safe-area-inset-bottom)" }}
     >

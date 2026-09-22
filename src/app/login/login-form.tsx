@@ -1,8 +1,10 @@
 "use client";
 
 import { useState } from "react";
+import Link from "next/link";
+import { LEGAL_VERSION } from "@/lib/legal";
 import { useRouter, useSearchParams } from "next/navigation";
-import { createClient } from "@/lib/supabase/client";
+import { clearCodeVerifiers, createClient } from "@/lib/supabase/client";
 import { safeNext } from "@/lib/url";
 import { translateAuthError as translate } from "@/lib/auth-errors";
 import { CodeStep } from "./code-step";
@@ -20,6 +22,7 @@ export default function LoginForm() {
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [terms, setTerms] = useState(false);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
   // Ha a címet még meg kell erősíteni, a kódbeíró képernyőre váltunk.
@@ -47,12 +50,18 @@ export default function LoginForm() {
       if (mode === "signup") {
         if (name.trim().length < 2) throw new Error("Adj meg egy nevet (legalább 2 karakter).");
         if (password.length < 8) throw new Error("A jelszó legyen legalább 8 karakter.");
+        if (!terms) throw new Error("A regisztrációhoz fogadd el a Felhasználási feltételeket.");
 
         const { data, error } = await supabase.auth.signUp({
           email: email.trim(),
           password,
           options: {
-            data: { display_name: name.trim() },
+            // Az elfogadás nyoma: melyik változatot és mikor fogadta el.
+            data: {
+              display_name: name.trim(),
+              terms_version: LEGAL_VERSION,
+              terms_accepted_at: new Date().toISOString(),
+            },
             emailRedirectTo: `${window.location.origin}/auth/callback`,
           },
         });
@@ -74,6 +83,7 @@ export default function LoginForm() {
           return;
         }
         if (error) throw error;
+        clearCodeVerifiers();
         router.replace(next);
       }
       router.refresh();
@@ -253,6 +263,44 @@ export default function LoginForm() {
             </button>
           )}
         </div>
+
+        {mode === "signup" && (
+          <label className="flex min-h-11 cursor-pointer items-start gap-3 py-1 text-xs leading-relaxed text-muted">
+            {/* Saját rajzolású jelölőnégyzet: az iPhone fehér négyzete kilógna a sötét
+                felületből. A keret kontrasztja 3:1 fölött van (WCAG 1.4.11). */}
+            <span className="relative mt-0.5 flex h-5 w-5 shrink-0">
+              <input
+                type="checkbox"
+                checked={terms}
+                onChange={(e) => setTerms(e.target.checked)}
+                className="peer h-5 w-5 cursor-pointer appearance-none rounded-md border border-muted bg-surface-2 transition checked:border-accent checked:bg-accent"
+              />
+              <svg
+                viewBox="0 0 24 24"
+                aria-hidden
+                className="pointer-events-none absolute inset-0 m-auto h-3.5 w-3.5 text-ink opacity-0 peer-checked:opacity-100"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="3.2"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+              >
+                <path d="m5 12.5 4.5 4.5L19 7.5" />
+              </svg>
+            </span>
+            <span>
+              Elfogadom a{" "}
+              <Link href="/feltetelek" target="_blank" data-inline className="font-semibold text-accent underline underline-offset-2">
+                Felhasználási feltételeket
+              </Link>
+              , és elolvastam az{" "}
+              <Link href="/adatvedelem" target="_blank" data-inline className="font-semibold text-accent underline underline-offset-2">
+                Adatkezelési tájékoztatót
+              </Link>
+              .
+            </span>
+          </label>
+        )}
 
         {error && (
           <p role="alert" className="rounded-lg bg-no/10 px-3 py-2.5 text-sm text-no">

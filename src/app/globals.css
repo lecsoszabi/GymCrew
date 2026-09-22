@@ -25,6 +25,25 @@ html {
   /* A koppintás azonnal hat (nincs dupla koppintásos nagyítás), a csípős nagyítás megmarad. */
   touch-action: manipulation;
 }
+/* Telefonon a ragadós fejléc és a fix alsó menü takarja a képernyő szélét: ha a
+   böngésző egy elemet a képbe görget (például billentyűzetes fókusznál), az a
+   kettő közé kerüljön, ne mögéjük (WCAG 2.4.11). */
+@media (max-width: 767px) {
+  html {
+    scroll-padding-top: 72px;
+    scroll-padding-bottom: calc(80px + env(safe-area-inset-bottom));
+  }
+}
+
+/* A süti-tájékoztató a képernyő alján; ahol alsó menü van, afölött. */
+[data-cookie-notice] {
+  bottom: calc(12px + env(safe-area-inset-bottom));
+}
+@media (max-width: 767px) {
+  body:has([data-bottom-nav]) [data-cookie-notice] {
+    bottom: calc(76px + env(safe-area-inset-bottom));
+  }
+}
 
 html,
 body {

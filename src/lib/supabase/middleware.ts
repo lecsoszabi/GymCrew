@@ -3,7 +3,7 @@ import { NextResponse, type NextRequest } from "next/server";
 import { isSupabaseConfigured } from "@/lib/env";
 
 /** Publikus útvonalak — minden más bejelentkezést igényel. */
-const PUBLIC_PATHS = ["/login", "/auth"];
+const PUBLIC_PATHS = ["/login", "/auth", "/feltetelek", "/adatvedelem"];
 
 export async function updateSession(request: NextRequest) {
   // Kulcsok nélkül nincs mibe bejelentkezni — a kapu zárva marad, és a login

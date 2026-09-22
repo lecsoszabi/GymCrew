@@ -1,5 +1,6 @@
 import { expect, test as setup } from "@playwright/test";
 import { MUNKAMENET_A } from "./munkamenet";
+import { CONSENT_COOKIE, LEGAL_VERSION } from "../../../src/lib/legal";
 
 /*
  * Minden futás elején egy oldalbetöltés, ami szükség esetén megújítja a
@@ -13,5 +14,10 @@ setup("munkamenet frissítése", async ({ page, context }) => {
     page,
     "lejárt a mentett munkamenet — futtasd: node scripts/teszt-belepes.mjs a"
   ).not.toHaveURL(/\/login/);
+  // A süti-tájékoztató ne takarja a tesztelt felületet.
+  const url = new URL(page.url());
+  await context.addCookies([
+    { name: CONSENT_COOKIE, value: LEGAL_VERSION, domain: url.hostname, path: "/", sameSite: "Lax" },
+  ]);
   await context.storageState({ path: MUNKAMENET_A });
 });

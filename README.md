@@ -26,6 +26,7 @@ főnöke bármikor válthat köztük.
 | 📊 **Statok** | Heti oszlopok, ranglista, sorozat, kedvenc napok, beérkezés-napló |
 | 🤳 **Profil** | Profilkép + testadatok (magasság, súly, BMI, cél, szint) |
 | 📱 **Mobilra** | Alsó tab-bar telefonon, oldalsáv gépen. PWA-ként a kezdőképernyőre tehető |
+| ⚖️ **Jogi** | Magyar Felhasználási feltételek és Adatkezelési tájékoztató (GDPR), süti-tájékoztató. A regisztrációhoz el kell fogadni a feltételeket |
 | ✨ **Finom mozgás** | A szakaszok görgetésre beúsznak, a fejléc árnyékot kap. Tiszta CSS, JavaScript nélkül; aki kevesebb mozgást kér, annak nincs |
 
 ---
@@ -146,6 +147,25 @@ megérkezés ténye kerül.
 
 ---
 
+## Jogi dokumentumok és sütik
+
+- **`/feltetelek`**: Felhasználási feltételek; **`/adatvedelem`**: Adatkezelési
+  tájékoztató (GDPR). Bejelentkezés nélkül is elérhetők; a belépő oldal alja, a
+  regisztráció és a profil alja is linkeli őket.
+- Az üzemeltető adatai és a dokumentumok változata egy helyen van:
+  `src/lib/legal.ts`. Lényeges változáskor írd át a `LEGAL_VERSION`-t: a
+  süti-tájékoztató újra megjelenik, és az új regisztrációk már az új változatot
+  rögzítik.
+- Regisztrációkor a feltételek elfogadása kötelező. A változat és az időpont a
+  felhasználó adatai közé kerül (`terms_version`, `terms_accepted_at`).
+- Az app **csak feltétlenül szükséges sütiket** használ (bejelentkezés, a
+  regisztráció biztonsági kulcsa, a tájékoztató sütije), ezért elég a
+  tájékoztatás, hozzájárulás nem kell. A biztonsági kulcsokat a sikeres belépés
+  után töröljük. **Ha egyszer statisztika vagy más nem szükséges süti kerül be,
+  előtte kifejezett hozzájárulást kell kérni**, és a tájékoztatót is bővíteni kell.
+
+---
+
 ## Arculat
 
 A logó egyetlen rajza a `src/lib/brand-shape.ts`-ben van: klasszikus súlyzó, a két
@@ -174,8 +194,8 @@ npm run test:db   # adatbázis + RLS szabályok
 | Réteg | Mit fed le | Darab |
 |---|---|---|
 | **Egység** (Vitest) | A „mindenkinek jó" idősáv-metszet, távolság és geofence, statisztika (sorozat, heti bontás), átirányítás-szűrő, a mai edzés kiválasztása budapesti idő szerint (óraátállítással), időválasztó, a lokátor nem indul újra minden rendernél, a térkép nem igazodik minden GPS-jelre, a belépési hibák magyarul, az e-mail sablonok egységessége | 108 |
-| **E2E** (Playwright) | Beléptető kapu, belépés, regisztráció, megerősítés kóddal, elfelejtett jelszó, megerősítő link, biztonsági fejlécek, mobil-ergonómia, akadálymentesség, egységes logó és ikonok, nincs em dash, axe WCAG 2.1 AA, 44 px-es koppintási célpontok, nagyítható oldal, megjeleníthető jelszó: asztali Chrome és iPhone Safari profilon | 146 |
-| **Bejelentkezve** (Playwright, élesben) | Minden oldal telefonon (nincs kilógás, nincs konzolhiba, egységes fejléc), alsó menü, a „Ma megyek" folyamat, térkép szimulált GPS-szel (nem pörög, nem ugrál, iPhone-on is sötét), új jelszó oldal (jelszót soha nem módosít), görgetés-animáció (azonnal látható felső rész, kevesebb mozgás, felugró lap), minden oldal akadálymentes (axe) és 44 px-es célpontokkal, a felugró lap Escape-re zárul | 30 |
+| **E2E** (Playwright) | Beléptető kapu, belépés, regisztráció, megerősítés kóddal, elfelejtett jelszó, megerősítő link, biztonsági fejlécek, mobil-ergonómia, akadálymentesség, egységes logó és ikonok, nincs em dash, axe WCAG 2.1 AA, 44 px-es koppintási célpontok, nagyítható oldal, megjeleníthető jelszó, jogi oldalak, süti-tájékoztató, a feltételek elfogadása, csak szükséges sütik: asztali Chrome és iPhone Safari profilon | 168 |
+| **Bejelentkezve** (Playwright, élesben) | Minden oldal telefonon (nincs kilógás, nincs konzolhiba, egységes fejléc), alsó menü, a „Ma megyek" folyamat, térkép szimulált GPS-szel (nem pörög, nem ugrál, iPhone-on is sötét), új jelszó oldal (jelszót soha nem módosít), görgetés-animáció (azonnal látható felső rész, kevesebb mozgás, felugró lap), minden oldal akadálymentes (axe) és 44 px-es célpontokkal, a felugró lap Escape-re zárul, a süti-tájékoztató az alsó menü fölött, a billentyűzetes fókusz sosem kerül a fejléc vagy a menü alá | 36 |
 | **Adatbázis** | Egy ember = egy csoport, kötelező indok, RLS-elszigetelés, teremváltás jogosultsága, öröklés, napi jelzés törlése | 49 |
 
 **Amire figyelj:** az E2E a regisztrációt a Supabase-hívás elfogásával játssza

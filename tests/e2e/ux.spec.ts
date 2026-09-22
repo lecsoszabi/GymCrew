@@ -51,6 +51,7 @@ test("a belépés minden állapota akadálymentes, és hüvelykujjal is jól kop
   await page.getByLabel("Neved").fill("Bence");
   await page.getByLabel("E-mail").fill("uj.tag@pelda.hu");
   await page.getByLabel("Jelszó").fill("eleg-hosszu-jelszo");
+  await page.getByRole("checkbox").check();
   await page.locator("form").getByRole("button", { name: "Fiók létrehozása" }).click();
   await expect(page.getByLabel("Megerősítő kód")).toBeVisible();
   await ellenoriz(page, "kódképernyő");

@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import Link from "next/link";
 import { updateProfile } from "@/app/app/actions";
 import { AvatarUploader } from "@/components/avatar-uploader";
 import { AvailabilityEditor } from "@/components/availability-editor";
@@ -251,6 +252,14 @@ export default function ProfileEditor({
       </section>
 
       <section className="pb-4">
+        <nav aria-label="Jogi dokumentumok" className="mb-4 flex flex-wrap justify-center gap-x-6 gap-y-6 text-xs">
+          <Link href="/feltetelek" className="tap font-semibold text-muted hover:text-fg">
+            Felhasználási feltételek
+          </Link>
+          <Link href="/adatvedelem" className="tap font-semibold text-muted hover:text-fg">
+            Adatkezelési tájékoztató
+          </Link>
+        </nav>
         <form action="/auth/signout" method="post">
           <button type="submit" className="btn btn-ghost w-full text-no">
             Kijelentkezés

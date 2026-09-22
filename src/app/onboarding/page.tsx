@@ -24,8 +24,8 @@ export default async function OnboardingPage() {
         <p className="text-xs font-semibold uppercase tracking-wider text-accent">1. lépés</p>
         <h2 className="mt-1.5 text-2xl font-bold tracking-tight">Pár adat rólad</h2>
         <p className="mt-2 text-sm leading-relaxed text-muted">
-          A testadatokból jönnek a statisztikáid. A testsúlyt bármikor frissítheted a
-          profilodnál, az app eltárolja a változást.
+          Csak a neved kötelező. A testadatokból jönnek a saját statisztikáid: a csapattársaid
+          nem látják őket, és a profilodnál bármikor módosíthatod vagy törölheted őket.
         </p>
       </header>
 

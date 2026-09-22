@@ -1,5 +1,6 @@
 import type { Metadata, Viewport } from "next";
 import "./globals.css";
+import { CookieNotice } from "@/components/cookie-notice";
 
 const siteUrl = process.env.NEXT_PUBLIC_SITE_URL ?? "http://localhost:3000";
 
@@ -22,7 +23,10 @@ export const viewport: Viewport = {
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <html lang="hu">
-      <body className="min-h-dvh bg-ink text-fg antialiased">{children}</body>
+      <body className="min-h-dvh bg-ink text-fg antialiased">
+        {children}
+        <CookieNotice />
+      </body>
     </html>
   );
 }

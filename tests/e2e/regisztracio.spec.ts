@@ -63,6 +63,7 @@ async function urlapKitoltes(page: Page, nev = "Bence", email = "uj.tag@pelda.hu
   await page.getByLabel("Neved").fill(nev);
   await page.getByLabel("E-mail").fill(email);
   await page.getByLabel("Jelszó").fill("eleg-hosszu-jelszo");
+  await page.getByRole("checkbox").check();
 }
 
 test.describe("Regisztráció", () => {
