@@ -41,7 +41,7 @@ export default async function AppLayout({ children }: { children: React.ReactNod
 
       <div className="min-w-0 flex-1">
         {/* Mobil fejléc */}
-        <header className="sticky top-0 z-30 flex items-center justify-between border-b border-line bg-ink/85 px-4 py-3 backdrop-blur-md md:hidden">
+        <header className="sticky top-0 z-30 flex items-center justify-between border-b border-line bg-ink/95 px-4 py-3 backdrop-blur-md md:hidden">
           <Link href="/app" className="flex items-center gap-2">
             <svg viewBox="0 0 512 512" className="h-6 w-6" aria-hidden>
               <g stroke="#c8ff4d" strokeWidth="40" strokeLinecap="round" fill="none">

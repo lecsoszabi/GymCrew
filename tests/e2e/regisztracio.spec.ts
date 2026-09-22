@@ -233,6 +233,10 @@ test.describe("Megerősítés kóddal", () => {
     await kodMezo(page).fill("123-456");
     await expect(kodMezo(page)).toHaveValue("123456");
     await expect(gomb).toBeEnabled();
+    // A projekt 8 jegyű kódot küld (Supabase: Email OTP Length) — az is átmegy.
+    await kodMezo(page).fill("1234 5678");
+    await expect(kodMezo(page)).toHaveValue("12345678");
+    await expect(gomb).toBeEnabled();
   });
 
   test("a kódmezőt a telefon kitöltheti a levélből", async ({ page }) => {

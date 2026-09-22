@@ -38,8 +38,9 @@ képernyőjén kell beírni — bármelyik eszközről olvasható. Ugyanitt lehe
 kérni, és aki kód nélkül próbál belépni, azt is ide viszi az app.
 
 Beállítás hozzá (**Authentication → Sign In / Providers → Email**): az
-*Email OTP Length* maradjon 6, az *Email OTP Expiration* 3600 másodperc (1 óra)
-vagy kevesebb.
+*Email OTP Length* most 8 — az app 6–10 jegyet elfogad, a levél pedig mindig
+annyit mutat, amennyi be van állítva. Az *Email OTP Expiration* 3600 másodperc
+(1 óra); ennél hosszabbra ne állítsd.
 
 **Felépítés:** táblázatos elrendezés, minden stílus soron belül, semmi külső CSS
 és kép. A súlyzó-logó háttérszínes táblacellákból van kirajzolva, mert azt

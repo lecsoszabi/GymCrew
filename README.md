@@ -14,7 +14,7 @@ főnöke bármikor válthat köztük.
 | | |
 |---|---|
 | 🔒 **Zárt** | Bejelentkezés nélkül semmi nem érhető el — fekete login képernyő fogad |
-| ✉️ **Regisztráció kóddal** | A levélben 6 jegyű kód jön, nem link — bármelyik eszközön beírható, a levelező linkellenőrzője sem használja el |
+| ✉️ **Regisztráció kóddal** | A levélben egyszer használható kód jön, nem link — bármelyik eszközön beírható, a levelező linkellenőrzője sem használja el |
 | 👥 **Csoport** | Meghívókód vagy e-mailes meghívó. Egy ember egyszerre **egy** csoport tagja |
 | 🏋️ **Terem** | A 28 szegedi kondi közül a **csoport főnöke** választ, edzésenként is felülírható |
 | 🗓️ **Időpont** | Bárki javasol, mindenki szavaz: Igen / Talán / **Nem + kötelező indok** |

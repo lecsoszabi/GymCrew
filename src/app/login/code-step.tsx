@@ -97,13 +97,14 @@ export function CodeStep({
         </label>
         <input
           id="otp"
-          className="field text-center font-mono text-2xl tracking-[0.3em]"
+          className="field text-center font-mono text-2xl tracking-[0.3em] placeholder:font-sans placeholder:text-base placeholder:tracking-normal"
           value={code}
-          // Beillesztésnél a szóközt, kötőjelet is elhagyjuk.
+          // Beillesztésnél a szóközt, kötőjelet is elhagyjuk. A hossz a Supabase
+          // beállítása (6–10 jegy), ezért itt nem kötjük meg.
           onChange={(e) => setCode(e.target.value.replace(/\D/g, "").slice(0, 10))}
           inputMode="numeric"
           autoComplete="one-time-code"
-          placeholder="••••••"
+          placeholder="A kód a levélből"
           autoFocus
         />
 
