@@ -116,7 +116,7 @@ export default function LiveMap({
               <>
                 A lokátor{" "}
                 <span className="font-semibold text-fg">{countdown(session.startsAt)}</span> múlva
-                ér rá — edzés előtt {LOCATOR_LEAD_MIN} perccel magától bekapcsol.
+                magától bekapcsol (edzés előtt {LOCATOR_LEAD_MIN} perccel).
               </>
             ) : (
               "Az edzés véget ért, a helymegosztás leállt."
@@ -166,7 +166,7 @@ export default function LiveMap({
                 ) : ping ? (
                   <Badge tone="yes">Úton</Badge>
                 ) : (
-                  <Badge>—</Badge>
+                  <Badge>Még nem</Badge>
                 )}
               </div>
             );
@@ -176,7 +176,7 @@ export default function LiveMap({
         <p className="mt-3 text-center text-[11px] leading-relaxed text-muted">
           A helyzeted csak a csoporttársaidnak, csak az edzés előtti {LOCATOR_LEAD_MIN} percben és
           csak akkor látszik, ha „Megyek"-et szavaztál. A terembe érve magától leáll. Tartsd
-          nyitva az appot — lezárt telefonon a böngésző nem küld helyzetet.
+          nyitva az appot, mert lezárt telefonon a böngésző nem küld helyzetet.
         </p>
       </section>
     </div>
@@ -191,7 +191,7 @@ function PermissionCard({ live }: { live: LocationState }) {
     return (
       <div className="card p-4 text-sm leading-relaxed text-muted">
         Ez a böngésző nem tud helyzetet megosztani. Nyisd meg az oldalt Safariban vagy
-        Chrome-ban — a Messenger és az Instagram beépített böngészője sokszor letiltja.
+        Chrome-ban, mert a Messenger és az Instagram beépített böngészője sokszor letiltja.
       </div>
     );
   }
@@ -221,7 +221,7 @@ function PermissionCard({ live }: { live: LocationState }) {
       <div className="min-w-0 flex-1">
         <p className="text-sm font-semibold">Engedélyezd a helymegosztást</p>
         <p className="mt-0.5 text-xs leading-relaxed text-muted">
-          Most csak engedélyt kérünk — helyzetet csak edzés előtt, és csak ha jössz, küldünk.
+          Most csak engedélyt kérünk. Helyzetet csak edzés előtt küldünk, és csak ha jössz.
         </p>
       </div>
       <button className="btn btn-primary shrink-0 px-4 text-sm" onClick={live.requestPermission}>
@@ -257,7 +257,7 @@ function LocatorBanner({
   if (live.arrived) {
     return (
       <div className="card border-accent/40 bg-accent/8 p-4">
-        <p className="text-sm font-semibold text-accent">Beértél — a helymegosztás leállt 💪</p>
+        <p className="text-sm font-semibold text-accent">Beértél, a helymegosztás leállt 💪</p>
       </div>
     );
   }
@@ -271,7 +271,7 @@ function LocatorBanner({
           disabled={pending}
           onClick={() => run(() => checkIn({ sessionId, source: "manual" }))}
         >
-          Beértem — jelzem kézzel
+          Beértem, jelzem kézzel
         </button>
         <ErrorNote>{error}</ErrorNote>
       </div>

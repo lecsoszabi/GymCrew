@@ -127,8 +127,8 @@ export function WhenPicker({
       ) : (
         <p className="rounded-xl bg-surface-2 px-4 py-3 text-sm text-muted">
           {todayOnly
-            ? "Mára már késő új időponthoz — holnapra a Tervben javasolhatsz."
-            : "Mára már késő — válassz egy másik napot."}
+            ? "Mára már késő új időponthoz. Holnapra a Tervben javasolhatsz."
+            : "Mára már késő. Válassz egy másik napot."}
         </p>
       )}
     </div>

@@ -272,7 +272,7 @@ export default function LoginForm() {
 /** A callback által visszaadott okok emberi nyelven. */
 const LINK_HIBAK: Record<string, string> = {
   expired:
-    "A megerősítő link lejárt. Kérj helyette egy kódot — azt bármelyik eszközön beírhatod.",
+    "A megerősítő link lejárt. Kérj helyette egy kódot, azt bármelyik eszközön beírhatod.",
   invalid:
     "A megerősítő link érvénytelen vagy már fel lett használva. Ha egyszer már rákattintottál, próbálj egyszerűen belépni.",
   // A Supabase a link megnyitásakor már megerősítette a címet, csak a
@@ -281,5 +281,5 @@ const LINK_HIBAK: Record<string, string> = {
     "A címedet megerősítettük ✓ Csak ebben a böngészőben nem tudtunk automatikusan beléptetni, mert a regisztráció egy másikban kezdődött. Lépj be alább az e-mail címeddel és a jelszavaddal.",
   auth: "A megerősítő link nem működött. Kérj helyette egy kódot.",
   "jelszo-link":
-    "A jelszó-visszaállító link nem működött: lejárt, már felhasználták, vagy másik böngészőben nyitottad meg. Kérj inkább kódot — azt bármelyik eszközön beírhatod.",
+    "A jelszó-visszaállító link nem működött: lejárt, már felhasználták, vagy másik böngészőben nyitottad meg. Kérj inkább kódot, azt bármelyik eszközön beírhatod.",
 };

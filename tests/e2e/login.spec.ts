@@ -85,7 +85,7 @@ test.describe("Belépő képernyő", () => {
     await expect(uzenet(page)).toContainText("lejárt");
   });
 
-  test("az adatvédelmi ígéret látszik a belépés előtt", async ({ page }) => {
-    await expect(page.getByText(/csak a csoporttársaid látják/)).toBeVisible();
+  test("az adatvédelmi mondat nem ismétlődik a belépő oldalon (a térképnél van)", async ({ page }) => {
+    await expect(page.getByText(/csoporttársaid/)).toHaveCount(0);
   });
 });

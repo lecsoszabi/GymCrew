@@ -89,7 +89,7 @@ export function NextSessionCard({
             <span className="relative inline-flex h-2.5 w-2.5 rounded-full bg-accent" />
           </span>
           <span className="min-w-0 flex-1 text-sm font-semibold text-accent">
-            Lokátor bekapcsolva — nézd meg, ki merre jár
+            Lokátor bekapcsolva: nézd meg, ki merre jár
           </span>
           <span className="text-accent">→</span>
         </Link>

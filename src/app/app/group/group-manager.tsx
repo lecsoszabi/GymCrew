@@ -153,7 +153,7 @@ export default function GroupManager({
           )}
           <p className="mt-1.5 text-xs text-muted">
             {isOwner
-              ? "Főnökként te váltasz termet — a jövőbeli edzések is átkerülnek."
+              ? "Főnökként te váltasz termet. A jövőbeli edzések is átkerülnek."
               : "A termet a csapat főnöke válthatja."}
           </p>
         </div>
@@ -222,7 +222,7 @@ export default function GroupManager({
             <p className="text-xs leading-relaxed text-muted">
               <strong className="text-fg">Innen nem megy ki levél.</strong> Ez csak
               előjegyzi a címet: aki ezzel az e-maillel regisztrál vagy belép, a
-              kezdőképernyőn ott találja a meghívót, és egy kattintással beléphet —
+              kezdőképernyőn ott találja a meghívót, és egy kattintással beléphet,
               kód nélkül is.
             </p>
 
@@ -319,7 +319,7 @@ export default function GroupManager({
           Kilépés után nem látod a csapat edzéseit és statjait. Bármikor visszaléphetsz a
           meghívókóddal.
           {group.ownerId === me &&
-            " Mivel te vagy a főnök, a legrégebbi tag veszi át a csapatot — ha egyedül vagy, a csapat törlődik."}
+            " Mivel te vagy a főnök, a legrégebbi tag veszi át a csapatot. Ha egyedül vagy, a csapat törlődik."}
         </p>
         <ErrorNote>{error}</ErrorNote>
         <div className="mt-4 grid grid-cols-2 gap-2">

@@ -4,7 +4,7 @@ export function translateAuthError(msg: string): string {
   if (m.includes("invalid login credentials")) return "Hibás e-mail vagy jelszó.";
   if (m.includes("email not confirmed")) return "Előbb erősítsd meg az e-mail címedet.";
   if (m.includes("token has expired or is invalid"))
-    return "Hibás vagy lejárt kód. Nézd meg, jól írtad-e be — vagy kérj újat.";
+    return "Hibás vagy lejárt kód. Nézd meg, jól írtad-e be, vagy kérj újat.";
   if (m.includes("user already registered") || m.includes("already been registered"))
     return "Ezzel az e-maillel már van fiók. Lépj be inkább.";
   if (m.includes("password should be at least")) return "A jelszó túl rövid (min. 8 karakter).";

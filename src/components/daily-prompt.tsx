@@ -136,7 +136,7 @@ export function DailyPrompt({
             autoFocus
           />
           <p className="mb-3 mt-1.5 text-xs text-muted">
-            Az indok kötelező — a többiek így tudják, mire számítsanak.
+            Az indok kötelező, így a többiek tudják, mire számítsanak.
           </p>
 
           <ErrorNote>{error}</ErrorNote>

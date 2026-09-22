@@ -134,7 +134,7 @@ export function SessionRow({
 
           {no.length > 0 && !past && (
             <p className="mb-3 rounded-lg bg-no/8 px-3 py-2 text-xs leading-relaxed text-no/90">
-              {no.length === 1 ? "Egy nem" : `${no.length} nem`} érkezett — nézd meg az indokot, és
+              {no.length === 1 ? "Egy nem" : `${no.length} nem`} érkezett. Nézd meg az indokot, és
               javasolj másik időpontot.
             </p>
           )}

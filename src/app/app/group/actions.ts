@@ -17,7 +17,7 @@ function humanize(message: string): string {
   if (message.includes("Már tagja vagy")) return message;
   if (message.includes("Nincs ilyen meghívókód")) return "Nincs ilyen meghívókód.";
   if (message.includes("duplicate key") && message.includes("invite_code"))
-    return "Próbáld újra — kódütközés történt.";
+    return "Kódütközés történt, próbáld újra.";
   if (message.includes("group_invites_group_id_invited_email_key"))
     return "Ezt az e-mailt már meghívtad.";
   return message;

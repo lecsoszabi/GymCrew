@@ -88,7 +88,7 @@ export function TodayBoard({
           </button>
         </div>
         <p className="mt-2.5 text-center text-[11px] leading-relaxed text-muted">
-          Ha mész, megadod, hánykor — a többiek szavazhatnak rá, és edzés előtt fél órával
+          Ha mész, megadod, hánykor. A többiek szavazhatnak rá, és edzés előtt fél órával
           bekapcsol a lokátor.
         </p>
       </div>

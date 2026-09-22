@@ -100,7 +100,7 @@ test("a kártyán adott „Nem” a napi jelzést is átírja, indokkal", async 
   await page.getByRole("button", { name: "Nem", exact: true }).click();
   const lap = page.getByRole("dialog", { name: "Miért nem jó ez az időpont?" });
   await lap.getByLabel("Miért nem jó ez az időpont?").fill("Teszt: ma mégsem érek rá");
-  await lap.getByRole("button", { name: "Nem megyek — küldés" }).click();
+  await lap.getByRole("button", { name: "Elküldöm" }).click();
   await expect(lap).toBeHidden();
 
   await expect(page.getByText("Teszt: ma mégsem érek rá")).toBeVisible();

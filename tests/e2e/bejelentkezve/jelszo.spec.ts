@@ -21,6 +21,9 @@ test("az új jelszó oldal betölt, és a hibás kitöltést helyben megfogja", 
 
   await page.goto("/reset-password");
   await expect(page.getByRole("heading", { name: "Új jelszó" })).toBeVisible();
+  // Ugyanaz a keret és logó, mint a belépő oldalon.
+  await expect(page.locator('[data-brand="badge"]')).toBeVisible();
+  expect(await page.evaluate(() => document.body.innerText)).not.toContain("—");
 
   const hiba = page.locator('p[role="alert"]');
   const mentes = page.getByRole("button", { name: "Mentem az új jelszót" });

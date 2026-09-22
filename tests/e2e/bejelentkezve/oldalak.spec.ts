@@ -15,7 +15,7 @@ const OLDALAK = [
 ];
 
 for (const o of OLDALAK) {
-  test(`${o.path} — betölt, nem lóg ki, nincs konzolhiba`, async ({ page }) => {
+  test(`${o.path}: betölt, nem lóg ki, nincs konzolhiba, egységes a fejléc`, async ({ page }) => {
     const hibak: string[] = [];
     page.on("pageerror", (e) => hibak.push(e.message));
     page.on("console", (m) => m.type() === "error" && hibak.push(m.text()));
@@ -28,6 +28,10 @@ for (const o of OLDALAK) {
       () => document.documentElement.scrollWidth - document.documentElement.clientWidth
     );
     expect(tul, "vízszintes kilógás pixelben").toBeLessThanOrEqual(1);
+
+    // Egységes arculat: a fejlécben az új logó, a szövegben nincs em dash.
+    await expect(page.locator('header [data-brand="mark"]')).toBeVisible();
+    expect(await page.evaluate(() => document.body.innerText)).not.toContain("—");
 
     // A térkép-csempék betöltési hibái nem az app hibái — a többi igen.
     expect(hibak.filter((h) => !/basemaps\.cartocdn|tile/i.test(h))).toEqual([]);

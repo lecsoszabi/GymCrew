@@ -37,6 +37,13 @@ export default function NewPasswordForm({ email }: { email: string }) {
 
   return (
     <form onSubmit={onSubmit} className="card animate-fade-up space-y-4 p-5">
+      <div>
+        <h2 className="text-lg font-bold tracking-tight">Új jelszó</h2>
+        <p className="mt-1.5 break-all text-sm leading-relaxed text-muted">
+          Fiók: <span className="font-semibold text-fg">{email}</span>
+        </p>
+      </div>
+
       {/* A jelszókezelő így tudja, melyik fiókhoz mentse az új jelszót. */}
       <input
         type="email"

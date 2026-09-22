@@ -113,7 +113,7 @@ export default function GroupGateForms({
               maxLength={6}
             />
             <p className="mt-2 text-xs text-muted">
-              A csapat főnökétől kapod — a Csapat fülön látja.
+              A csapat főnökétől kapod, ő a Csapat fülön látja.
             </p>
           </div>
 

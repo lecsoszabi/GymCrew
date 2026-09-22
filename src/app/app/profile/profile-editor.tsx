@@ -243,7 +243,7 @@ export default function ProfileEditor({
             <span className="mt-0.5 block text-xs text-muted">
               {availability.length > 0
                 ? `${availability.length} idősáv megadva`
-                : "Még nincs megadva — ebből jönnek a közös javaslatok"}
+                : "Még nincs megadva, pedig ebből jönnek a közös javaslatok"}
             </span>
           </span>
           <span className="text-accent">→</span>

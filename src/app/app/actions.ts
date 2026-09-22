@@ -134,10 +134,10 @@ export async function goingToday(input: { startsAt?: string }): Promise<GoingRes
     const when = new Date(input.startsAt);
     if (Number.isNaN(when.getTime())) return { ok: false, error: "Érvénytelen időpont." };
     if (when.getTime() < Date.now() - 60_000) {
-      return { ok: false, error: "Ez az időpont már elmúlt — válassz egy későbbit." };
+      return { ok: false, error: "Ez az időpont már elmúlt. Válassz egy későbbit." };
     }
     if (dayOfHU(when) !== todayHU()) {
-      return { ok: false, error: "A „Ma megyek” mára szól — másik napra a Tervben javasolj időpontot." };
+      return { ok: false, error: "A „Ma megyek” mára szól. Másik napra a Tervben javasolj időpontot." };
     }
 
     const { data, error } = await supabase
@@ -272,7 +272,7 @@ export async function castVote(input: {
   // A "nem"-hez kötelező indok — az adatbázis is kikényszeríti, itt csak
   // szebb hibaüzenetet adunk.
   if (input.vote === "no" && (!reason || reason.length < 3)) {
-    return fail("A nemet indokolni kell — írd le röviden, miért nem jó.");
+    return fail("A nemet indokolni kell: írd le röviden, miért nem jó.");
   }
 
   const supabase = await createClient();

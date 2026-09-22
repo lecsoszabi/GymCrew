@@ -107,7 +107,7 @@ export function CodeStep({
         <h2 className="text-lg font-bold tracking-tight">Nézd meg a postádat</h2>
         <p className="mx-auto mt-2 max-w-xs text-sm leading-relaxed text-muted">
           {purpose === "recovery"
-            ? // Nem áruljuk el, van-e ilyen fiók — a Supabase sem.
+            ? // Nem áruljuk el, van-e ilyen fiók, ahogy a Supabase sem.
               "Ha van fiókod ezzel a címmel, küldtünk rá egy kódot, amivel új jelszót állíthatsz be:"
             : justSent
               ? "Küldtünk egy megerősítő kódot ide:"

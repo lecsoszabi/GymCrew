@@ -67,7 +67,7 @@ export function VoteControls({
             })
           }
         >
-          {pending ? "Küldés…" : "Nem megyek — küldés"}
+          {pending ? "Küldés…" : "Elküldöm"}
         </button>
       </Sheet>
     </>

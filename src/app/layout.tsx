@@ -7,7 +7,7 @@ export const metadata: Metadata = {
   // Ehhez képest oldódnak fel a relatív hivatkozások (ikon, megosztási kép).
   metadataBase: new URL(siteUrl),
   title: "GymCrew Szeged",
-  description: "Beszéljétek meg, mikor mentek kondizni — és lássátok egymást útközben.",
+  description: "Beszéljétek meg, mikor mentek kondizni, és lássátok egymást útközben.",
   manifest: "/manifest.webmanifest",
   appleWebApp: { capable: true, statusBarStyle: "black-translucent", title: "GymCrew" },
 };
