@@ -94,21 +94,25 @@ export function AuthShell({
         top ? "" : "justify-center"
       }`}
     >
-      {/* halvány fénykör a háttérben */}
-      <div
-        aria-hidden
-        className="pointer-events-none absolute -top-40 left-1/2 h-[520px] w-[520px] -translate-x-1/2 rounded-full opacity-20 blur-3xl"
-        style={{ background: `radial-gradient(circle, ${LIME} 0%, transparent 65%)` }}
-      />
       <div className={`relative w-full ${wide ? "max-w-lg" : "max-w-sm"}`}>
-        <div className="mb-8 text-center">
-          <BrandBadge className="mx-auto h-28 w-28" />
-          <h1 className="mt-4 text-2xl font-bold tracking-tight">
-            GymCrew<span className="sr-only"> Szeged</span>
-          </h1>
-          {subtitle && (
-            <p className="mx-auto mt-2 max-w-xs text-sm leading-relaxed text-muted">{subtitle}</p>
-          )}
+        <div className="relative mb-8 text-center">
+          {/* Halvány fénykör, a logó közepéhez kötve: gépen a tartalom függőlegesen
+              középre kerül, így az oldal tetejéhez rögzítve elcsúszna a logótól. */}
+          <div
+            aria-hidden
+            data-brand="glow"
+            className="pointer-events-none absolute left-1/2 top-14 h-[520px] w-[520px] -translate-x-1/2 -translate-y-1/2 rounded-full opacity-20 blur-3xl"
+            style={{ background: `radial-gradient(circle, ${LIME} 0%, transparent 65%)` }}
+          />
+          <div className="relative">
+            <BrandBadge className="mx-auto h-28 w-28" />
+            <h1 className="mt-4 text-2xl font-bold tracking-tight">
+              GymCrew<span className="sr-only"> Szeged</span>
+            </h1>
+            {subtitle && (
+              <p className="mx-auto mt-2 max-w-xs text-sm leading-relaxed text-muted">{subtitle}</p>
+            )}
+          </div>
         </div>
         {children}
         <nav aria-label="Jogi dokumentumok" className="mt-8 flex justify-center gap-6 text-xs">

@@ -80,6 +80,27 @@ test.describe("Egységes arculat", () => {
   });
 });
 
+test("a belépő oldal fényköre a logó mögött van, bármekkora az ablak", async ({ page }) => {
+  // Gépen a tartalom függőlegesen középre kerül; a fénykörnek követnie kell a logót.
+  for (const meret of [
+    { width: 1280, height: 800 },
+    { width: 1440, height: 1100 },
+    { width: 390, height: 664 },
+  ]) {
+    await page.setViewportSize(meret);
+    await page.goto("/login");
+    const [feny, logo] = await Promise.all([
+      page.locator('[data-brand="glow"]').boundingBox(),
+      page.locator('[data-brand="badge"]').boundingBox(),
+    ]);
+    const kozep = (d: { x: number; y: number; width: number; height: number }) => [d.x + d.width / 2, d.y + d.height / 2];
+    const [fx, fy] = kozep(feny!);
+    const [lx, ly] = kozep(logo!);
+    expect(Math.abs(fx - lx), `vízszintesen, ${meret.width}×${meret.height}`).toBeLessThan(2);
+    expect(Math.abs(fy - ly), `függőlegesen, ${meret.width}×${meret.height}`).toBeLessThan(2);
+  }
+});
+
 test.describe("Betűk és sarkok", () => {
   test("a szöveg Barlow, a címek Barlow Condensed", async ({ page }) => {
     await page.goto("/login");
