@@ -116,8 +116,10 @@ body {
 }
 /* Az OpenStreetMap világos csempéit sötétre fordítjuk. Csempénként, nem a
    csempe-panelen: a WebKit (iPhone-on minden böngésző) a panelre tett szűrőt
-   nem rajzolja ki, ott világos maradna a térkép. */
-.leaflet-tile {
+   nem rajzolja ki, ott világos maradna a térkép. A dupla osztály azért kell,
+   mert a később betöltődő leaflet.css `.leaflet-tile { filter: inherit }`
+   szabálya egyforma erősségnél felülírná. */
+.leaflet-container .leaflet-tile {
   filter: invert(1) hue-rotate(180deg) brightness(0.92) contrast(0.9) saturate(0.7);
 }
 .leaflet-control-attribution {
