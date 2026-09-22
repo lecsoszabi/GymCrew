@@ -62,3 +62,17 @@ test("az alsó menü nem takarja el az oldal alját", async ({ page }) => {
   const menu = await page.locator("nav").last().boundingBox();
   expect(gomb!.y + gomb!.height).toBeLessThanOrEqual(menu!.y);
 });
+
+test("a lenyíló lista ugyanolyan mező, mint a többi (iPhone-on is)", async ({ page }) => {
+  // A Safari különben a saját vékony, natív vezérlőjét rajzolta ki.
+  await page.goto("/app/plan");
+  await page.getByRole("button", { name: "+ Új" }).click();
+  const lap = page.getByRole("dialog");
+  const lista = lap.locator("select.field").first();
+  const mezo = lap.locator("input.field").first();
+  await expect(lista).toBeVisible();
+  const [l, m] = await Promise.all([lista.boundingBox(), mezo.boundingBox()]);
+  expect(Math.abs(l!.height - m!.height), "magasságkülönbség pixelben").toBeLessThanOrEqual(2);
+  // Semmit nem mentünk: a lap bezárva marad üresen.
+  await page.keyboard.press("Escape");
+});
