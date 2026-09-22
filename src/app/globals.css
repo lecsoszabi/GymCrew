@@ -114,8 +114,10 @@ body {
   background: #0d0f12;
   font-family: var(--font-sans);
 }
-/* Az OpenStreetMap világos csempéit sötétre fordítjuk. */
-.leaflet-tile-pane {
+/* Az OpenStreetMap világos csempéit sötétre fordítjuk. Csempénként, nem a
+   csempe-panelen: a WebKit (iPhone-on minden böngésző) a panelre tett szűrőt
+   nem rajzolja ki, ott világos maradna a térkép. */
+.leaflet-tile {
   filter: invert(1) hue-rotate(180deg) brightness(0.92) contrast(0.9) saturate(0.7);
 }
 .leaflet-control-attribution {

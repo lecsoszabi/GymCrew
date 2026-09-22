@@ -1,4 +1,5 @@
 import { expect, type Page, test } from "@playwright/test";
+import { hidratalva } from "./kozos";
 
 /**
  * A regisztrációs folyamat végigjátszása úgy, hogy a Supabase hívását
@@ -67,6 +68,7 @@ async function urlapKitoltes(page: Page, nev = "Bence", email = "uj.tag@pelda.hu
 test.describe("Regisztráció", () => {
   test.beforeEach(async ({ page }) => {
     await page.goto("/login");
+    await hidratalva(page);
   });
 
   test("megerősítést igénylő fióknál a postaláda-képernyő jön", async ({ page }) => {
@@ -93,10 +95,12 @@ test.describe("Regisztráció", () => {
   test("azonnali munkamenet esetén az adatfelvételre visz", async ({ page }) => {
     await azonnalBeleptet(page);
     await urlapKitoltes(page);
+    const tovabb = page.waitForRequest((r) => new URL(r.url()).pathname === "/onboarding");
     await kuldoGomb(page, "Fiók létrehozása").click();
 
     // A middleware a hamis tokennel visszadob a loginra — a lényeg, hogy
-    // az app megpróbálta az onboardingot, nem a postaláda-képernyőn ragadt.
+    // az app az onboardingra indult, nem a postaláda-képernyőre.
+    await tovabb;
     await expect(page.getByRole("heading", { name: "Nézd meg a postádat" })).toBeHidden();
   });
 
@@ -148,7 +152,7 @@ test.describe("Regisztráció", () => {
     expect(decodeURIComponent(kertUrl)).toContain("/auth/callback");
   });
 
-  test("a regisztráció PKCE-vel megy (ezért böngésző-kötött a link)", async ({ page }) => {
+  test("a regisztráció PKCE-vel megy (ezért kód a megerősítés, nem link)", async ({ page }) => {
     let torzs: string | null = null;
     await page.route("**/auth/v1/signup**", async (route) => {
       torzs = route.request().postData();
@@ -163,8 +167,8 @@ test.describe("Regisztráció", () => {
     await kuldoGomb(page, "Fiók létrehozása").click();
     await expect(page.getByRole("heading", { name: "Nézd meg a postádat" })).toBeVisible();
 
-    // A code_challenge jelenléte az oka, hogy a megerősítő linket ugyanabban
-    // a böngészőben kell megnyitni — a hozzá tartozó titok csak ott van meg.
+    // A code_challenge miatt egy megerősítő link csak ugyanabban a böngészőben
+    // léptetne be — ezért a levélben kód jön, azt bárhonnan be lehet írni.
     expect(torzs).toContain("code_challenge");
   });
 
@@ -176,5 +180,125 @@ test.describe("Regisztráció", () => {
 
     expect(page.url()).not.toContain("eleg-hosszu-jelszo");
     expect(page.url()).not.toContain("password");
+  });
+});
+
+/** A Supabase sikeres kódellenőrzése: rögtön munkamenetet ad. */
+const munkamenet = {
+  access_token: "teszt-access-token",
+  token_type: "bearer",
+  expires_in: 3600,
+  expires_at: Math.floor(Date.now() / 1000) + 3600,
+  refresh_token: "teszt-refresh-token",
+  user: { id: "00000000-0000-4000-8000-000000000003", email: "uj.tag@pelda.hu", role: "authenticated" },
+};
+
+const kodMezo = (page: Page) => page.getByLabel("Megerősítő kód");
+
+test.describe("Megerősítés kóddal", () => {
+  test.beforeEach(async ({ page }) => {
+    await page.goto("/login");
+    await hidratalva(page);
+  });
+
+  test("a levélben kapott kóddal megerősíti a címet, és továbblép", async ({ page }) => {
+    await megerositestKerNev(page);
+    let torzs: string | null = null;
+    await page.route("**/auth/v1/verify**", async (route) => {
+      torzs = route.request().postData();
+      await route.fulfill({ status: 200, contentType: "application/json", body: JSON.stringify(munkamenet) });
+    });
+
+    await urlapKitoltes(page);
+    await kuldoGomb(page, "Fiók létrehozása").click();
+    await kodMezo(page).fill("123456");
+    const tovabb = page.waitForRequest((r) => new URL(r.url()).pathname === "/onboarding");
+    await page.getByRole("button", { name: "Megerősítem" }).click();
+
+    // Az adatfelvételre indul (a hamis tokent ott a middleware visszadobja).
+    await tovabb;
+    expect(JSON.parse(torzs!)).toMatchObject({ email: "uj.tag@pelda.hu", token: "123456", type: "email" });
+  });
+
+  test("a kódmező csak számjegyet fogad, és hat jegy előtt nem küld", async ({ page }) => {
+    await megerositestKerNev(page);
+    await urlapKitoltes(page);
+    await kuldoGomb(page, "Fiók létrehozása").click();
+
+    const gomb = page.getByRole("button", { name: "Megerősítem" });
+    await kodMezo(page).fill("12 3");
+    await expect(kodMezo(page)).toHaveValue("123");
+    await expect(gomb).toBeDisabled();
+    // Beillesztve gyakran szóközzel, kötőjellel jön.
+    await kodMezo(page).fill("123-456");
+    await expect(kodMezo(page)).toHaveValue("123456");
+    await expect(gomb).toBeEnabled();
+  });
+
+  test("a kódmezőt a telefon kitöltheti a levélből", async ({ page }) => {
+    await megerositestKerNev(page);
+    await urlapKitoltes(page);
+    await kuldoGomb(page, "Fiók létrehozása").click();
+
+    await expect(kodMezo(page)).toHaveAttribute("autocomplete", "one-time-code");
+    await expect(kodMezo(page)).toHaveAttribute("inputmode", "numeric");
+  });
+
+  test("hibás kódra magyarul szól", async ({ page }) => {
+    await megerositestKerNev(page);
+    // Pontosan így válaszol a Supabase rossz vagy lejárt kódra.
+    await page.route("**/auth/v1/verify**", (route) =>
+      route.fulfill({
+        status: 403,
+        contentType: "application/json",
+        body: JSON.stringify({ code: 403, error_code: "otp_expired", msg: "Token has expired or is invalid" }),
+      })
+    );
+
+    await urlapKitoltes(page);
+    await kuldoGomb(page, "Fiók létrehozása").click();
+    await kodMezo(page).fill("000000");
+    await page.getByRole("button", { name: "Megerősítem" }).click();
+
+    await expect(uzenet(page)).toContainText("Hibás vagy lejárt kód");
+    await expect(uzenet(page)).not.toContainText("Token");
+    // Maradunk, hogy újra próbálhassa.
+    await expect(kodMezo(page)).toBeVisible();
+  });
+
+  test("közvetlenül a regisztráció után az új kód kérése még vár", async ({ page }) => {
+    await megerositestKerNev(page);
+    await urlapKitoltes(page);
+    await kuldoGomb(page, "Fiók létrehozása").click();
+
+    await expect(page.getByRole("button", { name: /mp múlva/ })).toBeDisabled();
+  });
+
+  test("meg nem erősített címmel belépve a kódhoz visz, és új kódot lehet kérni", async ({ page }) => {
+    await page.route("**/auth/v1/token**", (route) =>
+      route.fulfill({
+        status: 400,
+        contentType: "application/json",
+        body: JSON.stringify({ code: 400, error_code: "email_not_confirmed", msg: "Email not confirmed" }),
+      })
+    );
+    let kert: string | null = null;
+    await page.route("**/auth/v1/resend**", async (route) => {
+      kert = route.request().postData();
+      await route.fulfill({ status: 200, contentType: "application/json", body: "{}" });
+    });
+
+    await page.getByLabel("E-mail").fill("uj.tag@pelda.hu");
+    await page.getByLabel("Jelszó").fill("eleg-hosszu-jelszo");
+    await kuldoGomb(page, "Belépés").click();
+
+    await expect(page.getByRole("heading", { name: "Nézd meg a postádat" })).toBeVisible();
+    await expect(page.getByText("még nem erősítetted meg")).toBeVisible();
+
+    await page.getByRole("button", { name: "Új kódot kérek" }).click();
+    await expect(page.getByText("Elküldtük az új kódot")).toBeVisible();
+    expect(JSON.parse(kert!)).toMatchObject({ type: "signup", email: "uj.tag@pelda.hu" });
+    // Utána egy percig nem lehet újra kérni.
+    await expect(page.getByRole("button", { name: /mp múlva/ })).toBeDisabled();
   });
 });

@@ -91,6 +91,37 @@ test("a böngésző közben is válaszol", async ({ page }) => {
   expect(lag).toBeLessThan(200);
 });
 
+test("a térkép sötét, iPhone-on is", async ({ page }) => {
+  // A WebKit a csempe-panelre tett sötétítő szűrőt nem rajzolta ki: iPhone-on
+  // világos térkép volt a fekete appban. Itt a kirajzolt képet mérjük, nem a CSS-t.
+  await page.goto("/app/map");
+  await expect(page.locator(".leaflet-tile-loaded").first()).toBeVisible({ timeout: 15_000 });
+  await page.waitForLoadState("networkidle");
+  const kep = await page.locator(".leaflet-container").screenshot({
+    style: ".leaflet-marker-pane, .leaflet-overlay-pane, .leaflet-control-container { visibility: hidden; }",
+  });
+
+  const vaszon = await page.context().newPage();
+  const fenyero = await vaszon.evaluate(async (b64) => {
+    const img = new Image();
+    img.src = `data:image/png;base64,${b64}`;
+    await img.decode();
+    const c = document.createElement("canvas");
+    c.width = img.width;
+    c.height = img.height;
+    const g = c.getContext("2d")!;
+    g.drawImage(img, 0, 0);
+    const d = g.getImageData(0, 0, c.width, c.height).data;
+    let osszeg = 0;
+    for (let i = 0; i < d.length; i += 4) osszeg += 0.2126 * d[i] + 0.7152 * d[i + 1] + 0.0722 * d[i + 2];
+    return osszeg / (d.length / 4);
+  }, kep.toString("base64"));
+  await vaszon.close();
+
+  // Világos OSM-csempékkel ~220 körül, sötétre fordítva ~60 körül.
+  expect(fenyero).toBeLessThan(110);
+});
+
 test("a saját jelölőm látszik a térképen", async ({ page }) => {
   await fakePhoneGps(page);
   await page.goto("/app/map");

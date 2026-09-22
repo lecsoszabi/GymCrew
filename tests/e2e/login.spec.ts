@@ -1,4 +1,5 @@
 import { expect, type Page, test } from "@playwright/test";
+import { hidratalva } from "./kozos";
 
 /**
  * Két "Belépés" feliratú gomb van: a fül és az űrlap küldő gombja.
@@ -14,6 +15,7 @@ const uzenet = (page: Page) => page.locator('p[role="alert"]');
 test.describe("Belépő képernyő", () => {
   test.beforeEach(async ({ page }) => {
     await page.goto("/login");
+    await hidratalva(page);
   });
 
   test("fekete háttérrel és a két füllel fogad", async ({ page }) => {
