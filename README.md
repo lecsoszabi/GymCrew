@@ -174,8 +174,8 @@ npm run test:db   # adatbázis + RLS szabályok
 | Réteg | Mit fed le | Darab |
 |---|---|---|
 | **Egység** (Vitest) | A „mindenkinek jó" idősáv-metszet, távolság és geofence, statisztika (sorozat, heti bontás), átirányítás-szűrő, a mai edzés kiválasztása budapesti idő szerint (óraátállítással), időválasztó, a lokátor nem indul újra minden rendernél, a térkép nem igazodik minden GPS-jelre, a belépési hibák magyarul, az e-mail sablonok egységessége | 108 |
-| **E2E** (Playwright) | Beléptető kapu, belépés, regisztráció, megerősítés kóddal, elfelejtett jelszó, megerősítő link, biztonsági fejlécek, mobil-ergonómia, akadálymentesség, egységes logó és ikonok, nincs em dash: asztali Chrome és iPhone Safari profilon | 140 |
-| **Bejelentkezve** (Playwright, élesben) | Minden oldal telefonon (nincs kilógás, nincs konzolhiba, egységes fejléc), alsó menü, a „Ma megyek" folyamat, térkép szimulált GPS-szel (nem pörög, nem ugrál, iPhone-on is sötét), új jelszó oldal (jelszót soha nem módosít), görgetés-animáció (azonnal látható felső rész, kevesebb mozgás, felugró lap) | 22 |
+| **E2E** (Playwright) | Beléptető kapu, belépés, regisztráció, megerősítés kóddal, elfelejtett jelszó, megerősítő link, biztonsági fejlécek, mobil-ergonómia, akadálymentesség, egységes logó és ikonok, nincs em dash, axe WCAG 2.1 AA, 44 px-es koppintási célpontok, nagyítható oldal, megjeleníthető jelszó: asztali Chrome és iPhone Safari profilon | 146 |
+| **Bejelentkezve** (Playwright, élesben) | Minden oldal telefonon (nincs kilógás, nincs konzolhiba, egységes fejléc), alsó menü, a „Ma megyek" folyamat, térkép szimulált GPS-szel (nem pörög, nem ugrál, iPhone-on is sötét), új jelszó oldal (jelszót soha nem módosít), görgetés-animáció (azonnal látható felső rész, kevesebb mozgás, felugró lap), minden oldal akadálymentes (axe) és 44 px-es célpontokkal, a felugró lap Escape-re zárul | 30 |
 | **Adatbázis** | Egy ember = egy csoport, kötelező indok, RLS-elszigetelés, teremváltás jogosultsága, öröklés, napi jelzés törlése | 49 |
 
 **Amire figyelj:** az E2E a regisztrációt a Supabase-hívás elfogásával játssza

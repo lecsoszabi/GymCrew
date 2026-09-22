@@ -35,6 +35,9 @@ export const BAR = { x: 192, y: 240, width: 128, height: 32 };
 /** A súlyzó befoglaló doboza a rácson (a kereszt tetejétől a tárcsák aljáig). */
 export const BOUNDS = { x: 62, y: 38, width: 388, height: 324 };
 
+/** Csak a súlyzó, kis margóval: ezzel a viewBox-szal a rajz kitölti a helyét. */
+export const BARE_VIEWBOX = `${BOUNDS.x - 8} ${BOUNDS.y - 8} ${BOUNDS.width + 16} ${BOUNDS.height + 16}`;
+
 /** A csempén a SZEGED felirat helye. A betűköz fele miatt kicsit jobbra tolva van középre. */
 export const CITY = { text: "SZEGED", x: 262, y: 454, size: 52, weight: 800, letterSpacing: 12 };
 
@@ -47,12 +50,20 @@ const attrs = (s: BrandShape) =>
     : `d="${s.d}"`;
 
 /** A súlyzó SVG-elemei szövegként (az ikonszkripthez). */
-export function dumbbellMarkup({ detail, cutColor }: { detail: boolean; cutColor: string }) {
+export function dumbbellMarkup({
+  detail,
+  cutColor,
+  color = LIME,
+}: {
+  detail: boolean;
+  cutColor: string;
+  color?: string;
+}) {
   const half = HALF.filter((s) => detail || !s.detail)
     .map((s) => `<${s.kind} ${attrs(s)}${s.cut ? ` fill="${cutColor}"` : ""}/>`)
     .join("");
   return (
-    `<g fill="${LIME}">${half}` +
+    `<g fill="${color}">${half}` +
     `<g transform="translate(512 0) scale(-1 1)">${half}</g>` +
     `<rect x="${BAR.x}" y="${BAR.y}" width="${BAR.width}" height="${BAR.height}"/></g>`
   );

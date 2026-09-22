@@ -115,7 +115,7 @@ export default function LiveMap({
             {minsToStart !== null && minsToStart > 0 ? (
               <>
                 A lokátor{" "}
-                <span className="font-semibold text-fg">{countdown(session.startsAt)}</span> múlva
+                <span className="font-semibold tabular-nums text-fg">{countdown(session.startsAt)}</span> múlva
                 magától bekapcsol (edzés előtt {LOCATOR_LEAD_MIN} perccel).
               </>
             ) : (

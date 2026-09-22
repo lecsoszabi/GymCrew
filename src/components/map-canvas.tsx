@@ -6,6 +6,7 @@ import { Circle, MapContainer, Marker, Popup, TileLayer, useMap } from "react-le
 import "leaflet/dist/leaflet.css";
 import { ARRIVAL_RADIUS_M, SZEGED_CENTER, formatDistance, etaMinutes } from "@/lib/geo";
 import type { LivePing } from "@/lib/types";
+import { BARE_VIEWBOX, INK, LIME, dumbbellMarkup } from "@/lib/brand-shape";
 
 type GymPoint = { name: string; lat: number; lng: number } | null;
 
@@ -37,10 +38,10 @@ function personIcon(p: LivePing, isMe: boolean) {
 
   const icon = L.divIcon({
     className: `crew-marker${p.arrived ? "" : " crew-pulse"}`,
-    iconSize: [38, 38],
-    iconAnchor: [19, 19],
-    popupAnchor: [0, -22],
-    html: `<div style="position:relative;width:38px;height:38px;border-radius:9999px;overflow:hidden;
+    iconSize: [44, 44],
+    iconAnchor: [22, 22],
+    popupAnchor: [0, -25],
+    html: `<div style="position:relative;width:44px;height:44px;border-radius:9999px;overflow:hidden;
       background:#1b1e24;border:2px solid ${border};display:flex;align-items:center;justify-content:center;
       box-shadow:0 4px 14px rgba(0,0,0,.55)">${inner}</div>`,
   });
@@ -52,14 +53,13 @@ let gymIconSingleton: L.DivIcon | null = null;
 function gymIcon() {
   gymIconSingleton ??= L.divIcon({
     className: "crew-marker",
-    iconSize: [40, 40],
-    iconAnchor: [20, 20],
-    popupAnchor: [0, -22],
-    html: `<div style="width:40px;height:40px;border-radius:12px;background:#c8ff4d;
+    iconSize: [44, 44],
+    iconAnchor: [22, 22],
+    popupAnchor: [0, -25],
+    // Ugyanaz a Dóm-súlyzó, mint a logóban, sötéten a lime csempén.
+    html: `<div style="width:44px;height:44px;border-radius:13px;background:${LIME};
       display:flex;align-items:center;justify-content:center;box-shadow:0 4px 16px rgba(200,255,77,.35)">
-      <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="#0a0b0d" stroke-width="2.2" stroke-linecap="round">
-        <path d="M6 12h12M4 9v6M2 10.5v3M20 9v6M22 10.5v3"/>
-      </svg></div>`,
+      <svg viewBox="${BARE_VIEWBOX}" width="32" height="27">${dumbbellMarkup({ detail: false, cutColor: LIME, color: INK })}</svg></div>`,
   });
   return gymIconSingleton;
 }
@@ -135,7 +135,7 @@ export function FitBounds({
 const PersonMarker = memo(function PersonMarker({ p, isMe }: { p: LivePing; isMe: boolean }) {
   const position = useMemo<[number, number]>(() => [p.lat, p.lng], [p.lat, p.lng]);
   return (
-    <Marker position={position} icon={personIcon(p, isMe)}>
+    <Marker position={position} icon={personIcon(p, isMe)} title={p.name} alt={p.name}>
       <Popup>
         <strong>{p.name}</strong>
         <br />
@@ -198,7 +198,7 @@ export default function MapCanvas({ gym, people }: { gym: GymPoint; people: Live
               radius={ARRIVAL_RADIUS_M}
               pathOptions={{ color: "#c8ff4d", weight: 1, fillOpacity: 0.07 }}
             />
-            <Marker position={gymPos} icon={gymIcon()}>
+            <Marker position={gymPos} icon={gymIcon()} title={gym.name} alt={gym.name}>
               <Popup>
                 <strong>{gym.name}</strong>
                 <br />

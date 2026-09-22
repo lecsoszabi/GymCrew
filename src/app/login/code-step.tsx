@@ -159,7 +159,7 @@ export function CodeStep({
 
       <button
         type="button"
-        className="mt-4 w-full text-center text-xs font-semibold text-muted underline underline-offset-2 hover:text-fg"
+        className="mt-2 min-h-11 w-full text-center text-xs font-semibold text-muted underline underline-offset-2 hover:text-fg"
         onClick={onBack}
       >
         Vissza a belépéshez

@@ -177,7 +177,7 @@ export default async function StatsPage() {
       <section>
         <SectionTitle
           action={
-            <Link href="/app/plan" className="text-xs font-semibold text-accent">
+            <Link href="/app/plan" className="tap text-xs font-semibold text-accent">
               Tervezés →
             </Link>
           }
@@ -248,7 +248,7 @@ function Stat({
   return (
     <div className={`card p-4 ${highlight ? "border-accent/35 bg-accent/5" : ""}`}>
       <p className="text-[10px] font-semibold uppercase tracking-wide text-muted">{label}</p>
-      <p className={`mt-1.5 text-2xl font-bold leading-none ${highlight ? "text-accent" : ""}`}>
+      <p className={`mt-1.5 text-2xl font-bold leading-none tabular-nums ${highlight ? "text-accent" : ""}`}>
         {value}
       </p>
       {suffix && <p className="mt-1 text-[11px] text-muted">{suffix}</p>}

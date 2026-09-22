@@ -107,7 +107,7 @@ export default async function DashboardPage() {
       <section>
         <SectionTitle
           action={
-            <Link href="/app/plan" className="text-xs font-semibold text-accent">
+            <Link href="/app/plan" className="tap text-xs font-semibold text-accent">
               Összes terv →
             </Link>
           }

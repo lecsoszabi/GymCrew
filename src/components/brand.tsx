@@ -1,5 +1,5 @@
 import type { ReactNode } from "react";
-import { BADGE_SHIFT, BAR, BOUNDS, CITY, HALF, LIME, TILE, TILE_BORDER } from "@/lib/brand-shape";
+import { BADGE_SHIFT, BAR, BARE_VIEWBOX, CITY, HALF, LIME, TILE, TILE_BORDER } from "@/lib/brand-shape";
 
 /** A súlyzó elemei a 512-es rácson (a rajz: src/lib/brand-shape.ts). */
 function Shapes({ detail, cutColor }: { detail: boolean; cutColor: string }) {
@@ -27,13 +27,10 @@ function Shapes({ detail, cutColor }: { detail: boolean; cutColor: string }) {
   );
 }
 
-const PAD = 8;
-const BARE_VIEW = `${BOUNDS.x - PAD} ${BOUNDS.y - PAD} ${BOUNDS.width + 2 * PAD} ${BOUNDS.height + 2 * PAD}`;
-
 /** A súlyzó magában, átlátszó háttéren, a fejlécbe és az oldalsávba. */
 export function DumbbellDom({ className }: { className?: string }) {
   return (
-    <svg viewBox={BARE_VIEW} className={className} aria-hidden>
+    <svg viewBox={BARE_VIEWBOX} className={className} aria-hidden>
       <Shapes detail={false} cutColor={TILE} />
     </svg>
   );

@@ -173,7 +173,7 @@ export default function ProfileEditor({
                 <button
                   key={g.v}
                   onClick={() => setGoal(goal === g.v ? null : g.v)}
-                  className={`h-10 rounded-xl border text-xs font-semibold transition ${
+                  className={`h-11 rounded-xl border text-xs font-semibold transition ${
                     goal === g.v
                       ? "border-accent bg-accent text-ink"
                       : "border-line bg-surface-2 text-muted"
@@ -192,7 +192,7 @@ export default function ProfileEditor({
                 <button
                   key={l.v}
                   onClick={() => setLevel(level === l.v ? null : l.v)}
-                  className={`h-10 rounded-xl border text-xs font-semibold transition ${
+                  className={`h-11 rounded-xl border text-xs font-semibold transition ${
                     level === l.v
                       ? "border-accent bg-accent text-ink"
                       : "border-line bg-surface-2 text-muted"
@@ -268,7 +268,7 @@ export default function ProfileEditor({
 function MiniStat({ label, value }: { label: string; value: string | number }) {
   return (
     <div className="card p-4 text-center">
-      <p className="text-xl font-bold leading-none">{value}</p>
+      <p className="text-xl font-bold leading-none tabular-nums">{value}</p>
       <p className="mt-1.5 text-[10px] uppercase tracking-wide text-muted">{label}</p>
     </div>
   );

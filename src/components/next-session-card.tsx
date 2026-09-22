@@ -69,7 +69,7 @@ export function NextSessionCard({
             <>
               <span className="text-muted">Kezdésig</span>{" "}
               {/* Időfüggő szöveg: a szerver és a böngésző pár másodperc eltéréssel számolja. */}
-              <span className="font-semibold text-accent" suppressHydrationWarning>
+              <span className="font-semibold tabular-nums text-accent" suppressHydrationWarning>
                 {countdown(session.starts_at)}
               </span>
             </>

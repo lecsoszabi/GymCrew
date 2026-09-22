@@ -36,10 +36,10 @@ export default async function AppLayout({ children }: { children: React.ReactNod
       <div className="min-w-0 flex-1">
         {/* Mobil fejléc */}
         <header data-scroll-header className="sticky top-0 z-30 flex items-center justify-between border-b border-line bg-ink/95 px-4 py-3 backdrop-blur-md md:hidden">
-          <Link href="/app">
+          <Link href="/app" className="-my-2.5 flex items-center py-2.5">
             <BrandMark />
           </Link>
-          <Link href="/app/profile" aria-label="Profil">
+          <Link href="/app/profile" aria-label="Profil" className="-m-1.5 rounded-full p-1.5">
             <Avatar url={crew.profile.avatar_url} name={crew.profile.display_name} size={32} />
           </Link>
         </header>

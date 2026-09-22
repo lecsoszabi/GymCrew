@@ -4,6 +4,7 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
 import { translateAuthError } from "@/lib/auth-errors";
+import { PasswordField } from "@/components/password-field";
 
 export default function NewPasswordForm({ email }: { email: string }) {
   const router = useRouter();
@@ -58,10 +59,8 @@ export default function NewPasswordForm({ email }: { email: string }) {
         <label className="label" htmlFor="new-password">
           Új jelszó
         </label>
-        <input
+        <PasswordField
           id="new-password"
-          type="password"
-          className="field"
           value={password}
           onChange={(e) => setPassword(e.target.value)}
           placeholder="Legalább 8 karakter"
@@ -75,10 +74,8 @@ export default function NewPasswordForm({ email }: { email: string }) {
         <label className="label" htmlFor="new-password-again">
           Még egyszer
         </label>
-        <input
+        <PasswordField
           id="new-password-again"
-          type="password"
-          className="field"
           value={again}
           onChange={(e) => setAgain(e.target.value)}
           autoComplete="new-password"

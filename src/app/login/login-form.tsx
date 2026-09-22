@@ -7,6 +7,7 @@ import { safeNext } from "@/lib/url";
 import { translateAuthError as translate } from "@/lib/auth-errors";
 import { CodeStep } from "./code-step";
 import { ForgotPassword } from "./forgot-password";
+import { PasswordField } from "@/components/password-field";
 
 type Mode = "signin" | "signup";
 
@@ -135,7 +136,7 @@ export default function LoginForm() {
           {jelszoLink && (
             <button
               type="button"
-              className="mt-2 text-xs font-semibold text-accent underline underline-offset-2"
+              className="tap mt-2 text-xs font-semibold text-accent underline underline-offset-2"
               onClick={() => {
                 setLinkHibaKezelve(true);
                 setForgot(true);
@@ -147,7 +148,7 @@ export default function LoginForm() {
           {!linkMegerositve && !jelszoLink && (
             <button
               type="button"
-              className="mt-2 text-xs font-semibold text-accent underline underline-offset-2 disabled:opacity-50"
+              className="tap mt-2 text-xs font-semibold text-accent underline underline-offset-2 disabled:opacity-50"
               disabled={busy || !email.includes("@")}
               onClick={async () => {
                 setBusy(true);
@@ -183,7 +184,7 @@ export default function LoginForm() {
               setMode(m);
               setError(null);
             }}
-            className={`rounded-lg py-2.5 text-sm font-semibold transition ${
+            className={`rounded-lg py-3 text-sm font-semibold transition ${
               mode === m ? "bg-accent text-ink" : "text-muted hover:text-fg"
             }`}
           >
@@ -231,10 +232,8 @@ export default function LoginForm() {
           <label className="label" htmlFor="password">
             Jelszó
           </label>
-          <input
+          <PasswordField
             id="password"
-            type="password"
-            className="field"
             value={password}
             onChange={(e) => setPassword(e.target.value)}
             placeholder={mode === "signup" ? "Legalább 8 karakter" : "••••••••"}
@@ -244,7 +243,7 @@ export default function LoginForm() {
           {mode === "signin" && (
             <button
               type="button"
-              className="mt-2 text-xs font-semibold text-accent underline-offset-2 hover:underline"
+              className="mt-1 inline-flex min-h-11 items-center text-xs font-semibold text-accent underline-offset-2 hover:underline"
               onClick={() => {
                 setError(null);
                 setForgot(true);

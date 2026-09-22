@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState, useTransition } from "react";
+import { useEffect, useRef, useState, useTransition } from "react";
 import { createPortal } from "react-dom";
 
 export type ActionResult = { ok: true } | { ok: false; error: string };
@@ -108,7 +108,30 @@ export function Sheet({
   // A portálhoz kell a document, ezért csak a hidratálás után rajzolunk.
   const [mounted, setMounted] = useState(false);
   useEffect(() => setMounted(true), []);
-  if (!open || !mounted) return null;
+
+  // Billentyűzettel is kezelhető: Escape bezárja, nyitáskor a fókusz a lapra
+  // kerül (ha nincs benne autoFocus-os mező), záráskor visszatér oda, ahonnan
+  // a lapot megnyitották. Az onClose-t refben tartjuk, mert a szülők minden
+  // rendernél új függvényt adnak, és attól nem akarjuk újra fókuszálni a lapot.
+  const panel = useRef<HTMLDivElement>(null);
+  const onCloseRef = useRef(onClose);
+  onCloseRef.current = onClose;
+  const visible = open && mounted;
+  useEffect(() => {
+    if (!visible) return;
+    const elozo = document.activeElement as HTMLElement | null;
+    if (!panel.current?.contains(document.activeElement)) panel.current?.focus();
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === "Escape") onCloseRef.current?.();
+    };
+    document.addEventListener("keydown", onKey);
+    return () => {
+      document.removeEventListener("keydown", onKey);
+      if (elozo?.isConnected) elozo.focus();
+    };
+  }, [visible]);
+
+  if (!visible) return null;
 
   return createPortal(
     <div className="fixed inset-0 z-50 flex items-end justify-center sm:items-center">
@@ -118,18 +141,20 @@ export function Sheet({
         aria-hidden
       />
       <div
+        ref={panel}
         role="dialog"
         aria-modal="true"
         aria-label={title}
+        tabIndex={-1}
         className="animate-fade-up relative max-h-[92dvh] w-full max-w-md overflow-y-auto overscroll-contain rounded-t-3xl border border-line bg-surface p-5 sm:rounded-3xl"
         style={{ paddingBottom: "max(1.25rem, env(safe-area-inset-bottom))" }}
       >
-        {title && <h2 className="mb-4 pr-8 text-lg font-bold tracking-tight">{title}</h2>}
+        {title && <h2 className="mb-4 pr-12 text-lg font-bold tracking-tight">{title}</h2>}
         {onClose && (
           <button
             onClick={onClose}
             aria-label="Bezárás"
-            className="absolute right-4 top-4 flex h-8 w-8 items-center justify-center rounded-full bg-surface-2 text-muted"
+            className="absolute right-3 top-3 flex h-11 w-11 items-center justify-center rounded-full bg-surface-2 text-muted"
           >
             <svg viewBox="0 0 24 24" className="h-4 w-4" fill="none" stroke="currentColor" strokeWidth="2.4">
               <path d="M6 6l12 12M18 6L6 18" strokeLinecap="round" />

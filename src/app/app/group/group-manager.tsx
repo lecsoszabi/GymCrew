@@ -137,7 +137,7 @@ export default function GroupManager({
         <SectionTitle
           action={
             isOwner ? (
-              <button className="text-xs font-semibold text-accent" onClick={() => setSwitching(true)}>
+              <button className="tap text-xs font-semibold text-accent" onClick={() => setSwitching(true)}>
                 Váltás
               </button>
             ) : null
