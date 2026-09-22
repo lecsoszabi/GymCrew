@@ -26,6 +26,7 @@ főnöke bármikor válthat köztük.
 | 📊 **Statok** | Heti oszlopok, ranglista, sorozat, kedvenc napok, beérkezés-napló |
 | 🤳 **Profil** | Profilkép + testadatok (magasság, súly, BMI, cél, szint) |
 | 📱 **Mobilra** | Alsó tab-bar telefonon, oldalsáv gépen. PWA-ként a kezdőképernyőre tehető |
+| ✨ **Finom mozgás** | A szakaszok görgetésre beúsznak, a fejléc árnyékot kap. Tiszta CSS, JavaScript nélkül; aki kevesebb mozgást kér, annak nincs |
 
 ---
 
@@ -174,7 +175,7 @@ npm run test:db   # adatbázis + RLS szabályok
 |---|---|---|
 | **Egység** (Vitest) | A „mindenkinek jó" idősáv-metszet, távolság és geofence, statisztika (sorozat, heti bontás), átirányítás-szűrő, a mai edzés kiválasztása budapesti idő szerint (óraátállítással), időválasztó, a lokátor nem indul újra minden rendernél, a térkép nem igazodik minden GPS-jelre, a belépési hibák magyarul, az e-mail sablonok egységessége | 108 |
 | **E2E** (Playwright) | Beléptető kapu, belépés, regisztráció, megerősítés kóddal, elfelejtett jelszó, megerősítő link, biztonsági fejlécek, mobil-ergonómia, akadálymentesség, egységes logó és ikonok, nincs em dash: asztali Chrome és iPhone Safari profilon | 140 |
-| **Bejelentkezve** (Playwright, élesben) | Minden oldal telefonon (nincs kilógás, nincs konzolhiba, egységes fejléc), alsó menü, a „Ma megyek" folyamat, térkép szimulált GPS-szel (nem pörög, nem ugrál, iPhone-on is sötét), új jelszó oldal (jelszót soha nem módosít) | 17 |
+| **Bejelentkezve** (Playwright, élesben) | Minden oldal telefonon (nincs kilógás, nincs konzolhiba, egységes fejléc), alsó menü, a „Ma megyek" folyamat, térkép szimulált GPS-szel (nem pörög, nem ugrál, iPhone-on is sötét), új jelszó oldal (jelszót soha nem módosít), görgetés-animáció (azonnal látható felső rész, kevesebb mozgás, felugró lap) | 22 |
 | **Adatbázis** | Egy ember = egy csoport, kötelező indok, RLS-elszigetelés, teremváltás jogosultsága, öröklés, napi jelzés törlése | 49 |
 
 **Amire figyelj:** az E2E a regisztrációt a Supabase-hívás elfogásával játssza
