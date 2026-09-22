@@ -42,6 +42,8 @@ test.describe("Egységes arculat", () => {
   });
 
   test("a belépés egyik állapotában sincs em dash", async ({ page }) => {
+    // Sok oldalbetöltés: a fejlesztői szerveren, párhuzamos futásnál kell a nagyobb időkeret.
+    test.slow();
     await page.route("**/auth/v1/signup**", (route) =>
       route.fulfill({ status: 200, contentType: "application/json", body: JSON.stringify({ id: "x" }) })
     );

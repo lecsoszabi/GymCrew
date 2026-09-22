@@ -95,6 +95,20 @@ test.describe("Regisztráció: a feltételek elfogadása", () => {
     expect(Math.abs(Date.parse(torzs!.data!.terms_accepted_at) - Date.now())).toBeLessThan(60_000);
   });
 
+  test("a pipa a látható négyzet körül is koppintható (44 px), hüvelykujjal is eltalálható", async ({
+    page,
+    isMobile,
+  }) => {
+    await kitolt(page);
+    const negyzet = page.locator("form label span[aria-hidden]").first();
+    await negyzet.evaluate((e) => e.scrollIntoView({ block: "center" }));
+    const d = (await negyzet.boundingBox())!;
+    const koppint = (x: number, y: number) => (isMobile ? page.touchscreen.tap(x, y) : page.mouse.click(x, y));
+    // A 20 px-es négyzeten kívül, de a 44 px-es területen belül.
+    await koppint(d.x - 8, d.y + d.height / 2);
+    await expect(page.getByRole("checkbox")).toBeChecked();
+  });
+
   test("a feltételek új lapon nyílnak, a kitöltött űrlap megmarad", async ({ page }) => {
     await kitolt(page);
     const [uj] = await Promise.all([
@@ -116,6 +130,8 @@ test.describe("Süti-tájékoztató", () => {
   const suti = (page: Page) => page.getByRole("region", { name: "Süti-tájékoztató" });
 
   test("első látogatáskor megjelenik, a Rendben elrejti, és egy évig nem jön újra", async ({ page, context }) => {
+    // Sok oldalbetöltés: a fejlesztői szerveren, párhuzamos futásnál kell a nagyobb időkeret.
+    test.slow();
     await page.goto("/login");
     await expect(suti(page)).toBeVisible();
     await akadalymentes(page, "süti-tájékoztató");
@@ -146,6 +162,8 @@ test.describe("Süti-tájékoztató", () => {
   });
 
   test("csak szükséges sütik vannak, böngészőtárat nem használ", async ({ page, context }) => {
+    // Sok oldalbetöltés: a fejlesztői szerveren, párhuzamos futásnál kell a nagyobb időkeret.
+    test.slow();
     await page.route("**/auth/v1/signup**", ok({ id: "x", email: "uj.tag@pelda.hu" }));
     await page.goto("/login");
     await hidratalva(page);

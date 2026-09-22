@@ -40,6 +40,8 @@ test("a jelszó megjeleníthető, majd újra elrejthető", async ({ page }) => {
 });
 
 test("a belépés minden állapota akadálymentes, és hüvelykujjal is jól koppintható", async ({ page }) => {
+  // Sok oldalbetöltés: a fejlesztői szerveren, párhuzamos futásnál kell a nagyobb időkeret.
+  test.slow();
   await page.route("**/auth/v1/signup**", ok({ id: "x" }));
   await page.route("**/auth/v1/recover**", ok({}));
   await page.goto("/login");

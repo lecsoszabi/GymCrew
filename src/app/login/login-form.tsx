@@ -267,13 +267,19 @@ export default function LoginForm() {
         {mode === "signup" && (
           <label className="flex min-h-11 cursor-pointer items-start gap-3 py-1 text-xs leading-relaxed text-muted">
             {/* Saját rajzolású jelölőnégyzet: az iPhone fehér négyzete kilógna a sötét
-                felületből. A keret kontrasztja 3:1 fölött van (WCAG 1.4.11). */}
+                felületből. A látható négyzet 20 px, de a valódi (átlátszó) jelölőnégyzet
+                44 × 44 px-en fogadja a koppintást, így hüvelykujjal sem kell a szöveg
+                linkjeit kerülgetni. A keret kontrasztja 3:1 fölött van (WCAG 1.4.11). */}
             <span className="relative mt-0.5 flex h-5 w-5 shrink-0">
               <input
                 type="checkbox"
                 checked={terms}
                 onChange={(e) => setTerms(e.target.checked)}
-                className="peer h-5 w-5 cursor-pointer appearance-none rounded-md border border-muted bg-surface-2 transition checked:border-accent checked:bg-accent"
+                className="peer absolute -inset-3 z-10 h-11 w-11 cursor-pointer opacity-0"
+              />
+              <span
+                aria-hidden
+                className="h-5 w-5 rounded-md border border-muted bg-surface-2 transition peer-checked:border-accent peer-checked:bg-accent peer-focus-visible:outline-2 peer-focus-visible:outline-offset-2 peer-focus-visible:outline-accent peer-focus-visible:outline-solid"
               />
               <svg
                 viewBox="0 0 24 24"
