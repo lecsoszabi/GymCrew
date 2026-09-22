@@ -208,7 +208,7 @@ export default function GroupManager({
                 inputMode="email"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
-                placeholder="kristof@pelda.hu"
+                placeholder="barat@pelda.hu"
                 aria-label="Meghívandó e-mail cím"
               />
               <button

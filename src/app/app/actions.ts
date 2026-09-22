@@ -3,7 +3,7 @@
 import { revalidatePath } from "next/cache";
 import { createClient } from "@/lib/supabase/server";
 import { getCrew } from "@/lib/data";
-import { todayHU } from "@/lib/date";
+import { dayOfHU, dayRangeHU, todayHU } from "@/lib/date";
 import type { Goal, Level, Vote } from "@/lib/types";
 
 const GOALS: Goal[] = ["muscle", "strength", "fat_loss", "fitness", "health", "other"];
@@ -23,38 +23,192 @@ function refresh() {
 }
 
 // ---------------------------------------------------------------------------
-// Napi szándék: "ma megyek" / "ma nem"
+// "Ma megyek" / "Ma nem" — a napi jelzés és a mai időpont egyben
+//
+// Korábban a napi jelzés és az időpont két külön dolog volt, és nem derült ki,
+// mi köztük a különbség. A lokátor viszont csak időponttal működik, így aki csak
+// "Ma megyek"-et nyomott, annak sosem kapcsolt be. Most a "Ma megyek" mindig egy
+// időponthoz köt: ha van mai, arra szavaz igennel; ha nincs, létrehozza. És
+// fordítva: a mai időpontra adott szavazat a napi jelzést is beállítja.
 // ---------------------------------------------------------------------------
 
-export async function setDailyCheckin(input: {
-  going: boolean;
-  reason?: string;
-  fromTime?: string;
-  toTime?: string;
-}): Promise<Result> {
-  const crew = await getCrew();
-  if (!crew.group) return fail("Előbb lépj be egy csoportba.");
+/** A csoport mai, még véget nem ért időpontja (Budapest szerint). */
+async function todaysLiveSession(groupId: string) {
+  const supabase = await createClient();
+  const { start, end } = dayRangeHU(todayHU());
+  const { data } = await supabase
+    .from("sessions")
+    .select("id, starts_at, duration_min")
+    .eq("group_id", groupId)
+    .in("status", ["proposed", "confirmed"])
+    .gte("starts_at", start)
+    .lt("starts_at", end)
+    .order("starts_at", { ascending: true });
 
-  const reason = input.reason?.trim() || null;
-  if (!input.going && (!reason || reason.length < 3)) {
-    return fail("Ha ma nem mész, írd le röviden, miért.");
+  const now = Date.now();
+  return (
+    (data ?? []).find((s) => new Date(s.starts_at).getTime() + s.duration_min * 60_000 > now) ??
+    null
+  );
+}
+
+function hhmm(iso: string) {
+  return new Intl.DateTimeFormat("hu-HU", {
+    timeZone: "Europe/Budapest",
+    hour: "2-digit",
+    minute: "2-digit",
+  }).format(new Date(iso));
+}
+
+/**
+ * A mai napi jelzésem. `null` = nincs döntés (pl. "Talán") — ilyenkor töröljük,
+ * különben a többiek tévesen azt látnák, hogy megyek.
+ */
+async function writeDaily(
+  groupId: string,
+  userId: string,
+  entry: { going: true; startsAt: string } | { going: false; reason: string } | null
+): Promise<string | null> {
+  const supabase = await createClient();
+  if (!entry) {
+    const { error } = await supabase
+      .from("daily_checkins")
+      .delete()
+      .eq("user_id", userId)
+      .eq("day", todayHU());
+    return error?.message ?? null;
   }
 
-  const supabase = await createClient();
   const { error } = await supabase.from("daily_checkins").upsert(
     {
-      user_id: crew.userId,
-      group_id: crew.group.id,
+      user_id: userId,
+      group_id: groupId,
       day: todayHU(),
-      going: input.going,
-      reason,
-      from_time: input.going ? input.fromTime || null : null,
-      to_time: input.going ? input.toTime || null : null,
+      going: entry.going,
+      reason: entry.going ? null : entry.reason,
+      from_time: entry.going ? hhmm(entry.startsAt) : null,
+      to_time: null,
     },
     { onConflict: "user_id,day" }
   );
+  return error?.message ?? null;
+}
 
-  if (error) return fail(error.message);
+/** Ha a szavazat a mai időpontra szól, a napi jelzést is hozzáigazítjuk. */
+async function syncDailyWithVote(
+  groupId: string,
+  userId: string,
+  sessionId: string,
+  vote: Vote,
+  reason: string | null
+): Promise<string | null> {
+  const live = await todaysLiveSession(groupId);
+  if (!live || live.id !== sessionId) return null;
+  return writeDaily(
+    groupId,
+    userId,
+    vote === "yes"
+      ? { going: true, startsAt: live.starts_at }
+      : vote === "no"
+        ? { going: false, reason: reason ?? "" }
+        : null
+  );
+}
+
+export type GoingResult =
+  | { ok: true; sessionId: string; created: boolean }
+  | { ok: false; error: string; needTime?: boolean };
+
+export async function goingToday(input: { startsAt?: string }): Promise<GoingResult> {
+  const crew = await getCrew();
+  if (!crew.group) return { ok: false, error: "Előbb lépj be egy csoportba." };
+  const supabase = await createClient();
+
+  let session = await todaysLiveSession(crew.group.id);
+  let created = false;
+
+  if (!session) {
+    if (!input.startsAt) {
+      return { ok: false, needTime: true, error: "Hánykor mész?" };
+    }
+    const when = new Date(input.startsAt);
+    if (Number.isNaN(when.getTime())) return { ok: false, error: "Érvénytelen időpont." };
+    if (when.getTime() < Date.now() - 60_000) {
+      return { ok: false, error: "Ez az időpont már elmúlt — válassz egy későbbit." };
+    }
+    if (dayOfHU(when) !== todayHU()) {
+      return { ok: false, error: "A „Ma megyek” mára szól — másik napra a Tervben javasolj időpontot." };
+    }
+
+    const { data, error } = await supabase
+      .from("sessions")
+      .insert({
+        group_id: crew.group.id,
+        gym_id: crew.group.gym_id,
+        starts_at: when.toISOString(),
+        duration_min: 90,
+        created_by: crew.userId,
+        status: "proposed",
+      })
+      .select("id, starts_at, duration_min")
+      .single();
+    if (error) return { ok: false, error: error.message };
+    session = data;
+    created = true;
+  }
+
+  const { error: voteErr } = await supabase.from("session_votes").upsert(
+    {
+      session_id: session.id,
+      user_id: crew.userId,
+      vote: "yes",
+      reason: null,
+      updated_at: new Date().toISOString(),
+    },
+    { onConflict: "session_id,user_id" }
+  );
+  if (voteErr) return { ok: false, error: voteErr.message };
+
+  // A napi jelzés is megy — ettől kapják meg a többiek a napi kérdést.
+  const dailyErr = await writeDaily(crew.group.id, crew.userId, {
+    going: true,
+    startsAt: session.starts_at,
+  });
+  if (dailyErr) return { ok: false, error: dailyErr };
+
+  await syncStatus(session.id);
+  refresh();
+  return { ok: true, sessionId: session.id, created };
+}
+
+export async function notGoingToday(reason: string): Promise<Result> {
+  const crew = await getCrew();
+  if (!crew.group) return fail("Előbb lépj be egy csoportba.");
+
+  const clean = reason.trim();
+  if (clean.length < 3) return fail("Ha ma nem mész, írd le röviden, miért.");
+
+  const dailyErr = await writeDaily(crew.group.id, crew.userId, { going: false, reason: clean });
+  if (dailyErr) return fail(dailyErr);
+
+  // Ha van mai időpont, arra is nemet mond — ugyanazzal az indokkal.
+  const session = await todaysLiveSession(crew.group.id);
+  if (session) {
+    const supabase = await createClient();
+    const { error: voteErr } = await supabase.from("session_votes").upsert(
+      {
+        session_id: session.id,
+        user_id: crew.userId,
+        vote: "no",
+        reason: clean,
+        updated_at: new Date().toISOString(),
+      },
+      { onConflict: "session_id,user_id" }
+    );
+    if (voteErr) return fail(voteErr.message);
+    await syncStatus(session.id);
+  }
+
   refresh();
   return ok;
 }
@@ -99,6 +253,7 @@ export async function proposeSession(input: {
   await supabase
     .from("session_votes")
     .upsert({ session_id: data.id, user_id: crew.userId, vote: "yes", reason: null });
+  await syncDailyWithVote(crew.group.id, crew.userId, data.id, "yes", null);
 
   await syncStatus(data.id);
   refresh();
@@ -126,13 +281,22 @@ export async function castVote(input: {
       session_id: input.sessionId,
       user_id: crew.userId,
       vote: input.vote,
-      reason: input.vote === "no" ? reason : reason,
+      reason: input.vote === "no" ? reason : null,
       updated_at: new Date().toISOString(),
     },
     { onConflict: "session_id,user_id" }
   );
 
   if (error) return fail(error.message);
+
+  const dailyErr = await syncDailyWithVote(
+    crew.group.id,
+    crew.userId,
+    input.sessionId,
+    input.vote,
+    reason
+  );
+  if (dailyErr) return fail(dailyErr);
 
   await syncStatus(input.sessionId);
   refresh();

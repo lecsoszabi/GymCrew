@@ -181,11 +181,13 @@ export default function MapCanvas({ gym, people }: { gym: GymPoint; people: Live
         style={{ height: "100%", width: "100%" }}
         attributionControl
       >
-        {/* Eleve sötét csempék: nincs szükség drága CSS-szűrőre, ami telefonon akadozott. */}
+        {/*
+          OpenStreetMap-csempék, CSS-szel sötétítve (globals.css). A CARTO sötét
+          csempéi API-kulcsot kérnek, és kulcs nélkül vízjellel jönnek.
+        */}
         <TileLayer
-          url="https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png"
-          attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> &copy; <a href="https://carto.com/attributions">CARTO</a>'
-          subdomains="abcd"
+          url="https://tile.openstreetmap.org/{z}/{x}/{y}.png"
+          attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'
           maxZoom={19}
         />
 

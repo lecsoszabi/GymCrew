@@ -90,13 +90,43 @@ export default function PlanClient({
         </button>
       </header>
 
+      {/* --- Közelgő -------------------------------------------------- */}
+      <section>
+        <SectionTitle>Közelgő időpontok</SectionTitle>
+        {upcoming.length > 0 ? (
+          <div className="space-y-3">
+            {upcoming.map((s) => (
+              <SessionRow
+                key={s.id}
+                session={s}
+                me={me}
+                isOwner={isOwner}
+                members={members}
+                votes={votes.filter((v) => v.session_id === s.id)}
+                gyms={gyms}
+                arrived={arrivals.filter((a) => a.sessionId === s.id).map((a) => a.userId)}
+                defaultOpen
+              />
+            ))}
+          </div>
+        ) : (
+          <EmptyState title="Nincs betervezve semmi" body="Javasolj egy időpontot a fenti + gombbal.">
+            <button className="btn btn-primary" onClick={() => openProposal()}>
+              Időpontot javaslok
+            </button>
+          </EmptyState>
+        )}
+      </section>
+
       {/* --- Mindenkinek jó ------------------------------------------ */}
       <section>
         <SectionTitle
           action={
-            <button className="text-xs font-semibold text-accent" onClick={() => setShowAvail(true)}>
-              Mikor érek rá →
-            </button>
+            commonSlots.length > 0 ? (
+              <button className="text-xs font-semibold text-accent" onClick={() => setShowAvail(true)}>
+                Mikor érek rá →
+              </button>
+            ) : null
           }
         >
           Mindenkinek jó lenne
@@ -140,33 +170,6 @@ export default function PlanClient({
           >
             <button className="btn btn-ghost" onClick={() => setShowAvail(true)}>
               Beállítom, mikor érek rá
-            </button>
-          </EmptyState>
-        )}
-      </section>
-
-      {/* --- Közelgő -------------------------------------------------- */}
-      <section>
-        <SectionTitle>Közelgő időpontok</SectionTitle>
-        {upcoming.length > 0 ? (
-          <div className="space-y-3">
-            {upcoming.map((s) => (
-              <SessionRow
-                key={s.id}
-                session={s}
-                me={me}
-                isOwner={isOwner}
-                members={members}
-                votes={votes.filter((v) => v.session_id === s.id)}
-                gyms={gyms}
-                arrived={arrivals.filter((a) => a.sessionId === s.id).map((a) => a.userId)}
-              />
-            ))}
-          </div>
-        ) : (
-          <EmptyState title="Nincs betervezve semmi" body="Javasolj egy időpontot a fenti + gombbal.">
-            <button className="btn btn-primary" onClick={() => openProposal()}>
-              Időpontot javaslok
             </button>
           </EmptyState>
         )}

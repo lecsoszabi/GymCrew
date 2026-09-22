@@ -111,7 +111,7 @@ export function Sheet({
         role="dialog"
         aria-modal="true"
         aria-label={title}
-        className="animate-fade-up relative w-full max-w-md rounded-t-3xl border border-line bg-surface p-5 sm:rounded-3xl"
+        className="animate-fade-up relative max-h-[92dvh] w-full max-w-md overflow-y-auto overscroll-contain rounded-t-3xl border border-line bg-surface p-5 sm:rounded-3xl"
         style={{ paddingBottom: "max(1.25rem, env(safe-area-inset-bottom))" }}
       >
         {title && <h2 className="mb-4 pr-8 text-lg font-bold tracking-tight">{title}</h2>}

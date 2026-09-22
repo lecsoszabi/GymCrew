@@ -5,6 +5,9 @@ const supabaseHost = process.env.NEXT_PUBLIC_SUPABASE_URL
   : undefined;
 
 const nextConfig: NextConfig = {
+  // A fejlesztői mód lebegő gombja telefonméretben rálóg az alsó menüre.
+  devIndicators: false,
+
   // Alapvető védelmi fejlécek minden válaszon.
   async headers() {
     return [

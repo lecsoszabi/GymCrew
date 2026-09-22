@@ -1,7 +1,7 @@
 // @vitest-environment jsdom
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { cleanup, fireEvent, render, screen } from "@testing-library/react";
-import { TIME_OPTIONS, WhenPicker, composeISO, nextDays, splitISO } from "@/components/when-picker";
+import { TIME_OPTIONS, WhenPicker, composeISO, nextDays, splitISO, timesFor } from "@/components/when-picker";
 
 afterEach(() => cleanup());
 
@@ -66,5 +66,17 @@ describe("WhenPicker", () => {
     render(<WhenPicker day="2026-09-24" minutes={18 * 60} onChange={onChange} now={NOW} />);
     fireEvent.click(screen.getByText("Péntek"));
     expect(onChange).toHaveBeenCalledWith({ day: "2026-09-25", minutes: 18 * 60 });
+  });
+});
+
+describe("timesFor", () => {
+  it("ma csak a legalább 15 perccel későbbi félórák, más napon mind", () => {
+    const now = new Date(2026, 8, 22, 17, 50);
+    expect(timesFor("2026-09-22", now)[0]).toBe(18 * 60 + 30);
+    expect(timesFor("2026-09-23", now)).toHaveLength(34);
+  });
+
+  it("késő este mára már nincs választható időpont", () => {
+    expect(timesFor("2026-09-22", new Date(2026, 8, 22, 22, 20))).toEqual([]);
   });
 });

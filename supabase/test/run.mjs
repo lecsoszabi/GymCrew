@@ -96,41 +96,41 @@ try {
     );
     return r.rows[0];
   };
-  const szabi = await mk("szabi@pelda.hu", "Szabi");
-  const kristof = await mk("kristof@pelda.hu", "Kristóf");
+  const anna = await mk("anna@pelda.hu", "Anna");
+  const bence = await mk("bence@pelda.hu", "Bence");
   const idegen = await mk("idegen@pelda.hu", "Idegen");
 
   const prof = await client.query("select id, display_name from public.profiles order by display_name");
   check("a regisztráció automatikusan profilt készít", prof.rows.length === 3, `${prof.rows.length} profil`);
-  check("a profil a megadott nevet kapja", prof.rows.some(r => r.display_name === "Kristóf"));
+  check("a profil a megadott nevet kapja", prof.rows.some(r => r.display_name === "Bence"));
 
   console.log("\n— Csoport —");
   const gym = await client.query("select id, name from public.gyms order by name limit 1");
   const gymId = gym.rows[0].id;
 
-  const g = await expectOk(client, szabi, "Szabi csoportot hoz létre", "select public.create_group($1,$2) id", ["Vasgyúrók", gymId]);
+  const g = await expectOk(client, anna, "Anna csoportot hoz létre", "select public.create_group($1,$2) id", ["Vasgyúrók", gymId]);
   const groupId = g.rows[0].id;
 
   const code = (await client.query("select invite_code from public.groups where id=$1", [groupId])).rows[0].invite_code;
   check("a csoport 6 jegyű meghívókódot kap", /^[A-Z2-9]{6}$/.test(code), `kód: ${code}`);
 
-  await expectFail(client, szabi, "ugyanaz az ember nem hozhat létre második csoportot",
+  await expectFail(client, anna, "ugyanaz az ember nem hozhat létre második csoportot",
     "select public.create_group($1,$2)", ["Másik", gymId], "Már tagja vagy");
 
-  await expectOk(client, kristof, "Kristóf belép a kóddal", "select public.join_group_by_code($1)", [code]);
+  await expectOk(client, bence, "Bence belép a kóddal", "select public.join_group_by_code($1)", [code]);
 
-  await expectFail(client, kristof, "egy ember egyszerre csak egy csoportban lehet",
+  await expectFail(client, bence, "egy ember egyszerre csak egy csoportban lehet",
     "select public.create_group($1,$2)", ["Harmadik", gymId], "Már tagja vagy");
 
   await expectFail(client, idegen, "rossz kóddal nem lehet belépni",
     "select public.join_group_by_code($1)", ["ZZZZZZ"], "Nincs ilyen meghívókód");
 
-  await expectFail(client, kristof, "a tagságot közvetlen UPDATE-tel nem lehet átírni",
-    "update public.profiles set group_id = null where id = $1", [kristof.id], "csoport-függvényeken keresztül");
+  await expectFail(client, bence, "a tagságot közvetlen UPDATE-tel nem lehet átírni",
+    "update public.profiles set group_id = null where id = $1", [bence.id], "csoport-függvényeken keresztül");
 
   console.log("\n— Láthatóság (RLS) —");
-  const seenByKristof = await tryAs(client, kristof, "select id from public.profiles");
-  check("a csoporttárs látja a másikat", seenByKristof?.rows.length === 2, `${seenByKristof?.rows.length} profil`);
+  const seenByBence = await tryAs(client, bence, "select id from public.profiles");
+  check("a csoporttárs látja a másikat", seenByBence?.rows.length === 2, `${seenByBence?.rows.length} profil`);
 
   const seenByIdegen = await tryAs(client, idegen, "select id from public.profiles");
   check("a kívülálló csak magát látja", seenByIdegen?.rows.length === 1, `${seenByIdegen?.rows.length} profil`);
@@ -141,35 +141,35 @@ try {
   console.log("\n— Terem váltása —");
   const gym2 = (await client.query("select id from public.gyms order by name offset 3 limit 1")).rows[0].id;
   // RLS-nél a tiltott UPDATE nem hibát dob, hanem egyszerűen nulla sort érint.
-  const denied = await tryAs(client, kristof, "update public.groups set gym_id=$1 where id=$2 returning id", [gym2, groupId]);
+  const denied = await tryAs(client, bence, "update public.groups set gym_id=$1 where id=$2 returning id", [gym2, groupId]);
   check("nem-főnök nem válthat termet (0 sor módosul)", denied?.rows.length === 0, `${denied?.rows.length} sor módosult`);
   const stillOld = (await client.query("select gym_id from public.groups where id=$1", [groupId])).rows[0];
   check("a terem tényleg változatlan maradt", stillOld.gym_id === gymId);
-  const sw = await expectOk(client, szabi, "a főnök válthat termet",
+  const sw = await expectOk(client, anna, "a főnök válthat termet",
     "update public.groups set gym_id=$1 where id=$2 returning id", [gym2, groupId]);
   check("a váltás tényleg megtörtént", sw?.rows.length === 1);
 
   console.log("\n— Időpont és szavazás —");
-  const s = await expectOk(client, szabi, "Szabi időpontot javasol",
+  const s = await expectOk(client, anna, "Anna időpontot javasol",
     `insert into public.sessions (group_id, gym_id, starts_at, created_by)
-     values ($1,$2, now() + interval '2 days', $3) returning id`, [groupId, gym2, szabi.id]);
+     values ($1,$2, now() + interval '2 days', $3) returning id`, [groupId, gym2, anna.id]);
   const sessionId = s.rows[0].id;
 
-  await expectOk(client, szabi, "igen szavazat indok nélkül is mehet",
-    "insert into public.session_votes (session_id,user_id,vote) values ($1,$2,'yes')", [sessionId, szabi.id]);
+  await expectOk(client, anna, "igen szavazat indok nélkül is mehet",
+    "insert into public.session_votes (session_id,user_id,vote) values ($1,$2,'yes')", [sessionId, anna.id]);
 
-  await expectFail(client, kristof, "NEM szavazat indok nélkül elutasítva",
-    "insert into public.session_votes (session_id,user_id,vote) values ($1,$2,'no')", [sessionId, kristof.id],
+  await expectFail(client, bence, "NEM szavazat indok nélkül elutasítva",
+    "insert into public.session_votes (session_id,user_id,vote) values ($1,$2,'no')", [sessionId, bence.id],
     "no_vote_needs_reason");
 
-  await expectFail(client, kristof, "a túl rövid indok sem elég",
-    "insert into public.session_votes (session_id,user_id,vote,reason) values ($1,$2,'no','x')", [sessionId, kristof.id],
+  await expectFail(client, bence, "a túl rövid indok sem elég",
+    "insert into public.session_votes (session_id,user_id,vote,reason) values ($1,$2,'no','x')", [sessionId, bence.id],
     "no_vote_needs_reason");
 
-  await expectOk(client, kristof, "NEM szavazat rendes indokkal átmegy",
-    "insert into public.session_votes (session_id,user_id,vote,reason) values ($1,$2,'no','Akkor még melóban vagyok')", [sessionId, kristof.id]);
+  await expectOk(client, bence, "NEM szavazat rendes indokkal átmegy",
+    "insert into public.session_votes (session_id,user_id,vote,reason) values ($1,$2,'no','Akkor még melóban vagyok')", [sessionId, bence.id]);
 
-  await expectFail(client, kristof, "más nevében nem lehet szavazni",
+  await expectFail(client, bence, "más nevében nem lehet szavazni",
     "insert into public.session_votes (session_id,user_id,vote) values ($1,$2,'yes')", [sessionId, idegen.id]);
 
   await expectFail(client, idegen, "kívülálló nem lát rá az edzésre",
@@ -178,22 +178,22 @@ try {
   console.log("\n— Az edzés kényes mezői —");
   const gym3 = (await client.query("select id from public.gyms order by name offset 5 limit 1")).rows[0].id;
 
-  await expectFail(client, kristof, "nem-főnök nem válthat termet az edzésen",
+  await expectFail(client, bence, "nem-főnök nem válthat termet az edzésen",
     "update public.sessions set gym_id=$1 where id=$2", [gym3, sessionId],
     "csak a csoport főnöke");
 
-  await expectOk(client, szabi, "a főnök válthat termet az edzésen",
+  await expectOk(client, anna, "a főnök válthat termet az edzésen",
     "update public.sessions set gym_id=$1 where id=$2", [gym3, sessionId]);
 
-  await expectFail(client, szabi, "az edzés nem tolható át másik csoportba",
+  await expectFail(client, anna, "az edzés nem tolható át másik csoportba",
     "update public.sessions set group_id=gen_random_uuid() where id=$1", [sessionId],
     "másik csoportba");
 
-  await expectFail(client, kristof, "az edzés készítője nem írható át",
-    "update public.sessions set created_by=$1 where id=$2", [kristof.id, sessionId],
+  await expectFail(client, bence, "az edzés készítője nem írható át",
+    "update public.sessions set created_by=$1 where id=$2", [bence.id, sessionId],
     "készítője nem módosítható");
 
-  await expectOk(client, kristof, "a státusz viszont bármelyik tagtól jöhet",
+  await expectOk(client, bence, "a státusz viszont bármelyik tagtól jöhet",
     "update public.sessions set status='confirmed' where id=$1", [sessionId]);
 
   console.log("\n— Profilkép tárhely —");
@@ -202,39 +202,49 @@ try {
   check("csak képtípusok engedettek", Array.isArray(bucket?.allowed_mime_types) && bucket.allowed_mime_types.includes("image/jpeg") && !bucket.allowed_mime_types.includes("text/html"));
 
   console.log("\n— Napi jelzés —");
-  await expectOk(client, szabi, "„ma megyek” indok nélkül mehet",
-    "insert into public.daily_checkins (user_id,group_id,going) values ($1,$2,true)", [szabi.id, groupId]);
+  await expectOk(client, anna, "„ma megyek” indok nélkül mehet",
+    "insert into public.daily_checkins (user_id,group_id,going) values ($1,$2,true)", [anna.id, groupId]);
 
-  await expectFail(client, kristof, "„ma nem” indok nélkül elutasítva",
-    "insert into public.daily_checkins (user_id,group_id,going) values ($1,$2,false)", [kristof.id, groupId],
+  await expectFail(client, bence, "„ma nem” indok nélkül elutasítva",
+    "insert into public.daily_checkins (user_id,group_id,going) values ($1,$2,false)", [bence.id, groupId],
     "decline_needs_reason");
 
-  await expectOk(client, kristof, "„ma nem” indokkal átmegy",
-    "insert into public.daily_checkins (user_id,group_id,going,reason) values ($1,$2,false,'Beteg vagyok')", [kristof.id, groupId]);
+  await expectOk(client, bence, "„ma nem” indokkal átmegy",
+    "insert into public.daily_checkins (user_id,group_id,going,reason) values ($1,$2,false,'Beteg vagyok')", [bence.id, groupId]);
 
-  await expectFail(client, szabi, "naponta csak egy jelzés fér el",
-    "insert into public.daily_checkins (user_id,group_id,going) values ($1,$2,true)", [szabi.id, groupId],
+  await expectFail(client, anna, "naponta csak egy jelzés fér el",
+    "insert into public.daily_checkins (user_id,group_id,going) values ($1,$2,true)", [anna.id, groupId],
     "daily_checkins_user_id_day_key");
 
-  const todays = await tryAs(client, kristof, "select user_id, going from public.daily_checkins where day = (now() at time zone 'Europe/Budapest')::date");
+  const todays = await tryAs(client, bence, "select user_id, going from public.daily_checkins where day = (now() at time zone 'Europe/Budapest')::date");
   check("a csoport látja egymás mai jelzéseit", todays?.rows.length === 2, `${todays?.rows.length} sor`);
 
+  // A "Talán" szavazat a saját napi jelzést törli — másét senki nem törölheti.
+  const foreign = await tryAs(client, anna,
+    "delete from public.daily_checkins where user_id = $1 returning id", [bence.id]);
+  check("más napi jelzését nem lehet törölni", foreign?.rows.length === 0, `${foreign?.rows.length} sor törölve`);
+  const own = await tryAs(client, bence,
+    "delete from public.daily_checkins where user_id = $1 returning id", [bence.id]);
+  check("a saját napi jelzés törölhető", own?.rows.length === 1, `${own?.rows.length} sor törölve`);
+  await expectOk(client, bence, "törlés után újra lehet jelezni",
+    "insert into public.daily_checkins (user_id,group_id,going,reason) values ($1,$2,false,'Beteg vagyok')", [bence.id, groupId]);
+
   console.log("\n— Meghívó —");
-  await expectFail(client, kristof, "nem-főnök nem hívhat meg senkit",
-    "insert into public.group_invites (group_id,invited_email,invited_by) values ($1,'uj@pelda.hu',$2)", [groupId, kristof.id]);
-  await expectOk(client, szabi, "a főnök meghívhat e-maillel",
-    "insert into public.group_invites (group_id,invited_email,invited_by) values ($1,'idegen@pelda.hu',$2)", [groupId, szabi.id]);
+  await expectFail(client, bence, "nem-főnök nem hívhat meg senkit",
+    "insert into public.group_invites (group_id,invited_email,invited_by) values ($1,'uj@pelda.hu',$2)", [groupId, bence.id]);
+  await expectOk(client, anna, "a főnök meghívhat e-maillel",
+    "insert into public.group_invites (group_id,invited_email,invited_by) values ($1,'idegen@pelda.hu',$2)", [groupId, anna.id]);
   const inv = await tryAs(client, idegen, "select id from public.group_invites");
   check("a meghívott látja a meghívóját", inv?.rows.length === 1, `${inv?.rows.length} sor`);
 
   console.log("\n— Kilépés és öröklés —");
-  await expectOk(client, szabi, "a főnök kilép", "select public.leave_group()", []);
+  await expectOk(client, anna, "a főnök kilép", "select public.leave_group()", []);
   const owner = (await client.query("select owner_id from public.groups where id=$1", [groupId])).rows[0];
-  check("a csoportot a maradó tag örökli", owner.owner_id === kristof.id);
-  const szabiGroup = (await client.query("select group_id from public.profiles where id=$1", [szabi.id])).rows[0];
-  check("a kilépőnek nincs csoportja", szabiGroup.group_id === null);
+  check("a csoportot a maradó tag örökli", owner.owner_id === bence.id);
+  const annaGroup = (await client.query("select group_id from public.profiles where id=$1", [anna.id])).rows[0];
+  check("a kilépőnek nincs csoportja", annaGroup.group_id === null);
 
-  await expectOk(client, kristof, "az utolsó tag is kiléphet", "select public.leave_group()", []);
+  await expectOk(client, bence, "az utolsó tag is kiléphet", "select public.leave_group()", []);
   const gone = await client.query("select count(*)::int n from public.groups where id=$1", [groupId]);
   check("az üresen maradt csoport törlődik", gone.rows[0].n === 0);
 

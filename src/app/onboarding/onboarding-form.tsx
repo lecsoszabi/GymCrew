@@ -51,7 +51,7 @@ export default function OnboardingForm({
             className="field"
             value={name}
             onChange={(e) => setName(e.target.value)}
-            placeholder="Kristóf"
+            placeholder="Kovács Anna"
             required
             minLength={2}
             maxLength={40}

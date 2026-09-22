@@ -81,7 +81,7 @@ adatait látod.* A pozíciódat csak a csoporttagok, és csak az aktív ablakban
 |---|---|
 | `/login` | Fekete képernyő, e-mail+jelszó, regisztráció. Ezen kívül semmi nem érhető el. |
 | `/onboarding` | Profilkép feltöltés + testadatok (magasság, súly, szül. dátum, nem, cél, szint) |
-| `/app` | Dashboard: következő edzés, "Ma megyek" gomb, csoporttagok állapota, napi modal |
+| `/app` | Kezdőlap: felül a „Ma" (mai edzés kártyája, vagy „Ma megyek / Ma nem"), alatta a következő edzés, napi modal |
 | `/app/plan` | Időpont javaslat, szavazás (igen / talán / nem+indok), átfedés-javaslatok |
 | `/app/map` | Élő térkép — lokátor, ETA, megérkezés-jelzés |
 | `/app/group` | Csoport kezelés, meghívók, kondiváltás (csak főnök), tagok |
@@ -116,11 +116,15 @@ belépéskor:
   van csoportom?                           nem → kihagy
   válaszoltam már ma?                      igen → kihagy
   jelezte MÁS a csoportból ma, hogy megy?  nem  → kihagy   ◄ a kért feltétel
-  → modal: "Szia! Ma Kristóf menne kondizni. Te is jössz?"
-     [Ma megyek] [Ma nem] → nem esetén kötelező indok
+  → modal: "Szia! Bence ma 18:00-kor megy. Jössz?"
+     [Jövök 18:00-ra] [Ma nem tudok] → nem esetén kötelező indok
 ```
 
-Aki elsőként akar menni, a dashboard „Ma megyek" gombjával jelez — ez indítja a láncot.
+Aki elsőként akar menni, a kezdőlap „Ma megyek" gombjával jelez — ez indítja a láncot.
+A „Ma megyek" mindig **időpontot** is jelent: ha még nincs mai, rákérdez, hánykor, és
+létrehozza (a lokátor csak időponthoz tud bekapcsolni). Visszafelé is él a kapcsolat: a mai
+időpontra adott szavazat a napi jelzést is átírja (Igen → megy, Nem → indokkal kihagyja,
+Talán → nincs döntés), így a kezdőlap, a napi kérdés és a kártya mindig ugyanazt mutatja.
 
 ---
 

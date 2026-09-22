@@ -1,9 +1,11 @@
 "use client";
 
-import { useState } from "react";
-import { setDailyCheckin } from "@/app/app/actions";
+import { useEffect, useState } from "react";
+import { goingToday, notGoingToday } from "@/app/app/actions";
 import { Avatar } from "@/components/avatar";
 import { ErrorNote, Sheet, useAction } from "@/components/ui";
+import { WhenPicker, composeISO, nextDays, timesFor } from "@/components/when-picker";
+import { formatTime } from "@/lib/date";
 
 type Member = { id: string; name: string; avatar: string | null; going: boolean };
 
@@ -15,30 +17,52 @@ export function DailyPrompt({
   open,
   goingNames,
   members,
+  todaySession,
 }: {
   open: boolean;
   goingNames: string[];
   members: Member[];
+  todaySession: { startsAt: string; gymName: string | null } | null;
 }) {
   const [visible, setVisible] = useState(open);
+  const [mounted, setMounted] = useState(false);
   const [declining, setDeclining] = useState(false);
   const [reason, setReason] = useState("");
-  const [from, setFrom] = useState("18:00");
+  const [day, setDay] = useState("");
+  const [minutes, setMinutes] = useState(18 * 60);
   const { pending, error, run } = useAction();
 
-  if (!visible) return null;
+  // Csak a böngészőben jelenik meg: az időválasztó a telefon órájából dolgozik,
+  // a szerver (UTC) mást számolna, és a kettő összeakadna.
+  useEffect(() => {
+    setDay(nextDays(1)[0].key);
+    setMounted(true);
+  }, []);
+
+  if (!visible || !mounted) return null;
+
+  const tooLate = !todaySession && timesFor(day).length === 0;
 
   const who =
     goingNames.length === 1
       ? goingNames[0]
       : `${goingNames.slice(0, -1).join(", ")} és ${goingNames.at(-1)}`;
+  const at = todaySession ? formatTime(todaySession.startsAt) : null;
 
   return (
     <Sheet open title="Szia! Ma kondizunk?">
       <p className="-mt-2 mb-4 text-sm leading-relaxed text-muted">
         <span className="font-semibold text-fg">{who}</span>{" "}
-        {goingNames.length > 1 ? "jelezték" : "jelezte"}, hogy ma {goingNames.length > 1 ? "mennek" : "megy"}.
-        Te is jössz?
+        {goingNames.length > 1 ? "mennek" : "megy"}
+        {at ? (
+          <>
+            {" "}ma <span className="font-semibold text-fg">{at}</span>-kor
+            {todaySession?.gymName ? ` a(z) ${todaySession.gymName} terembe` : ""}.
+          </>
+        ) : (
+          " ma."
+        )}{" "}
+        Jössz?
       </p>
 
       <div className="mb-5 flex flex-wrap gap-2">
@@ -57,28 +81,40 @@ export function DailyPrompt({
 
       {!declining ? (
         <>
-          <label className="label" htmlFor="daily-from">
-            Mikortól érnél rá?
-          </label>
-          <input
-            id="daily-from"
-            type="time"
-            className="field mb-4"
-            value={from}
-            onChange={(e) => setFrom(e.target.value)}
-          />
+          {/* Ha még nincs mai időpont, itt dől el, mikor. */}
+          {!todaySession && (
+            <div className="mb-4">
+              <WhenPicker
+                todayOnly
+                day={day}
+                minutes={minutes}
+                onChange={(n) => {
+                  setDay(n.day);
+                  setMinutes(n.minutes);
+                }}
+              />
+            </div>
+          )}
 
           <ErrorNote>{error}</ErrorNote>
 
           <div className="mt-3 grid gap-2">
             <button
               className="btn btn-primary"
-              disabled={pending}
+              disabled={pending || tooLate}
               onClick={() =>
-                run(() => setDailyCheckin({ going: true, fromTime: from }), () => setVisible(false))
+                run(
+                  async () => {
+                    const r = await goingToday(
+                      todaySession ? {} : { startsAt: composeISO(day, minutes) }
+                    );
+                    return r.ok ? { ok: true } : { ok: false, error: r.error };
+                  },
+                  () => setVisible(false)
+                )
               }
             >
-              {pending ? "Egy pillanat…" : "Ma megyek 💪"}
+              {pending ? "Egy pillanat…" : at ? `Jövök ${at}-ra 💪` : "Ma megyek 💪"}
             </button>
             <button className="btn btn-ghost" disabled={pending} onClick={() => setDeclining(true)}>
               Ma nem tudok
@@ -112,9 +148,7 @@ export function DailyPrompt({
             <button
               className="btn btn-primary"
               disabled={pending || reason.trim().length < 3}
-              onClick={() =>
-                run(() => setDailyCheckin({ going: false, reason }), () => setVisible(false))
-              }
+              onClick={() => run(() => notGoingToday(reason), () => setVisible(false))}
             >
               {pending ? "Küldés…" : "Küldés"}
             </button>

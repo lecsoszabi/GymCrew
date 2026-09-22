@@ -3,6 +3,8 @@
 import { useEffect, useMemo } from "react";
 import { WEEKDAYS, minutesToTime, weekdayIndex } from "@/lib/date";
 
+const HONAPOK = ["jan.", "febr.", "márc.", "ápr.", "máj.", "jún.", "júl.", "aug.", "szept.", "okt.", "nov.", "dec."];
+
 /** Egy nap a következő hétből, helyi idő szerint. */
 export type DayOption = { key: string; top: string; bottom: string };
 
@@ -18,12 +20,19 @@ export function nextDays(count = 7, now = new Date()): DayOption[] {
     const d = new Date(base);
     d.setDate(base.getDate() + i);
     const top = i === 0 ? "Ma" : i === 1 ? "Holnap" : WEEKDAYS[weekdayIndex(d)];
-    return { key: ymd(d), top, bottom: `${d.getMonth() + 1}. ${d.getDate()}.` };
+    return { key: ymd(d), top, bottom: `${HONAPOK[d.getMonth()]} ${d.getDate()}.` };
   });
 }
 
 /** 06:00-tól 22:30-ig, félóránként. */
 export const TIME_OPTIONS = Array.from({ length: 34 }, (_, i) => 6 * 60 + i * 30);
+
+/** Az adott napon választható időpontok — ma csak a legalább 15 perccel későbbiek. */
+export function timesFor(dayKey: string, now: Date = new Date()): number[] {
+  if (dayKey !== ymd(now)) return TIME_OPTIONS;
+  const earliest = now.getHours() * 60 + now.getMinutes() + 15;
+  return TIME_OPTIONS.filter((t) => t >= earliest);
+}
 
 /** A választott nap + perc → ISO időbélyeg (helyi idő szerint). */
 export function composeISO(dayKey: string, minutes: number): string {
@@ -49,17 +58,18 @@ export function WhenPicker({
   minutes,
   onChange,
   now = new Date(),
+  todayOnly,
 }: {
   day: string;
   minutes: number;
   onChange: (next: { day: string; minutes: number }) => void;
   now?: Date;
+  /** Csak a mai nap: a napválasztó elrejtve, csak az idő látszik. */
+  todayOnly?: boolean;
 }) {
   const days = useMemo(() => nextDays(7, now), [now]);
   const todayKey = days[0].key;
-  // Ma csak a legalább 15 perccel későbbi időpontok.
-  const earliestToday = now.getHours() * 60 + now.getMinutes() + 15;
-  const times = day === todayKey ? TIME_OPTIONS.filter((t) => t >= earliestToday) : TIME_OPTIONS;
+  const times = timesFor(day, now);
 
   // Ha a kiválasztott időpont közben elmúlt (pl. sokáig nyitva maradt a lap),
   // a legkorábbi érvényesre igazítunk — különben múltbeli időpont menne el.
@@ -69,11 +79,11 @@ export function WhenPicker({
 
   return (
     <div>
-      <p className="label">Melyik nap?</p>
-      <div className="-mx-1 flex gap-2 overflow-x-auto px-1 pb-1">
+      {!todayOnly && <p className="label">Melyik nap?</p>}
+      <div className={`-mx-1 flex gap-2 overflow-x-auto px-1 pb-1 ${todayOnly ? "hidden" : ""}`}>
         {days.map((d) => {
           const on = d.key === day;
-          const disabled = d.key === todayKey && earliestToday > TIME_OPTIONS[TIME_OPTIONS.length - 1];
+          const disabled = d.key === todayKey && timesFor(todayKey, now).length === 0;
           return (
             <button
               key={d.key}
@@ -81,8 +91,7 @@ export function WhenPicker({
               disabled={disabled}
               onClick={() => {
                 // Ha a mai napra váltva a kiválasztott idő már elmúlt, a legkorábbira ugrunk.
-                const nextTimes =
-                  d.key === todayKey ? TIME_OPTIONS.filter((t) => t >= earliestToday) : TIME_OPTIONS;
+                const nextTimes = timesFor(d.key, now);
                 const nextMinutes = nextTimes.includes(minutes) ? minutes : (nextTimes[0] ?? minutes);
                 onChange({ day: d.key, minutes: nextMinutes });
               }}
@@ -98,7 +107,8 @@ export function WhenPicker({
         })}
       </div>
 
-      <label className="label mt-4" htmlFor="when-time">
+      {/* Mai módban a lap címe már kérdezi ("Hánykor mész ma?") — a felirat csak a képernyőolvasónak kell. */}
+      <label className={todayOnly ? "sr-only" : "label mt-4"} htmlFor="when-time">
         Hánykor?
       </label>
       {times.length > 0 ? (
@@ -116,7 +126,9 @@ export function WhenPicker({
         </select>
       ) : (
         <p className="rounded-xl bg-surface-2 px-4 py-3 text-sm text-muted">
-          Mára már késő — válassz egy másik napot.
+          {todayOnly
+            ? "Mára már késő új időponthoz — holnapra a Tervben javasolhatsz."
+            : "Mára már késő — válassz egy másik napot."}
         </p>
       )}
     </div>

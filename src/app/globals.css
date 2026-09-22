@@ -114,7 +114,10 @@ body {
   background: #0d0f12;
   font-family: var(--font-sans);
 }
-/* A csempék eleve sötétek (CARTO dark) — nem kell telefonon drága CSS-szűrő. */
+/* Az OpenStreetMap világos csempéit sötétre fordítjuk. */
+.leaflet-tile-pane {
+  filter: invert(1) hue-rotate(180deg) brightness(0.92) contrast(0.9) saturate(0.7);
+}
 .leaflet-control-attribution {
   background: rgb(10 11 13 / 0.75) !important;
   color: #7c828c !important;

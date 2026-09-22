@@ -57,7 +57,7 @@ async function hibavalValaszol(page: Page, status: number, body: object) {
   );
 }
 
-async function urlapKitoltes(page: Page, nev = "Kristóf", email = "uj.tag@pelda.hu") {
+async function urlapKitoltes(page: Page, nev = "Bence", email = "uj.tag@pelda.hu") {
   await ful(page, "Regisztráció").click();
   await page.getByLabel("Neved").fill(nev);
   await page.getByLabel("E-mail").fill(email);
@@ -138,12 +138,12 @@ test.describe("Regisztráció", () => {
       });
     });
 
-    await urlapKitoltes(page, "Kristóf Teszt");
+    await urlapKitoltes(page, "Bence Teszt");
     await kuldoGomb(page, "Fiók létrehozása").click();
     await expect(page.getByRole("heading", { name: "Nézd meg a postádat" })).toBeVisible();
 
     // A név a törzsben utazik…
-    expect(torzs).toContain("Krist");
+    expect(torzs).toContain("Bence");
     // …a visszatérési cím viszont a query-ben, a saját oldalunkra mutatva.
     expect(decodeURIComponent(kertUrl)).toContain("/auth/callback");
   });

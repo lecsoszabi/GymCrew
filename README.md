@@ -18,7 +18,8 @@ főnöke bármikor válthat köztük.
 | 🏋️ **Terem** | A 28 szegedi kondi közül a **csoport főnöke** választ, edzésenként is felülírható |
 | 🗓️ **Időpont** | Bárki javasol, mindenki szavaz: Igen / Talán / **Nem + kötelező indok** |
 | 🤝 **Közös sáv** | Mindenki megadja a heti ráérését → az app kiszámolja, **mikor jó mindenkinek** |
-| ☀️ **Napi kérdés** | Belépéskor rákérdez — de **csak ha aznap már jelezte valaki**, hogy megy |
+| ☀️ **Ma megyek** | Egy gomb a kezdőlapon: megadod, hánykor, és mai edzés lesz belőle — a többiek szavazhatnak rá |
+| 🔔 **Napi kérdés** | Belépéskor rákérdez — de **csak ha aznap már jelezte valaki**, hogy megy |
 | 📍 **Lokátor** | T−30 perctől él, 150 m-en belül automatikus beérkezés, utána magától leáll |
 | 📊 **Statok** | Heti oszlopok, ranglista, sorozat, kedvenc napok, beérkezés-napló |
 | 🤳 **Profil** | Profilkép + testadatok (magasság, súly, BMI, cél, szint) |
@@ -77,7 +78,7 @@ Nyisd meg a [http://localhost:3000](http://localhost:3000) címet.
 
 1. Regisztrálj, töltsd ki az adataid, hozz létre csapatot, válassz termet
 2. A **Csapat** fülön másold ki a 6 jegyű kódot
-3. Kristóf regisztrál (másik böngészőben vagy telefonon), és belép a kóddal
+3. A barátod regisztrál (másik böngészőben vagy telefonon), és belép a kóddal
 
 **Tipp az első próbához:** a Supabase **Authentication → Providers → Email**
 alatt kapcsold ki a *Confirm email*-t, így nem kell visszaigazoló levelekre várni.
@@ -148,9 +149,10 @@ npm run test:db   # adatbázis + RLS szabályok
 
 | Réteg | Mit fed le | Darab |
 |---|---|---|
-| **Egység** (Vitest) | A „mindenkinek jó" idősáv-metszet, távolság és geofence, statisztika (sorozat, heti bontás), átirányítás-szűrő | 47 |
+| **Egység** (Vitest) | A „mindenkinek jó" idősáv-metszet, távolság és geofence, statisztika (sorozat, heti bontás), átirányítás-szűrő, a mai edzés kiválasztása budapesti idő szerint (óraátállítással), időválasztó, a lokátor nem indul újra minden rendernél, a térkép nem igazodik minden GPS-jelre | 87 |
 | **E2E** (Playwright) | Beléptető kapu, belépés, regisztráció, megerősítő link, biztonsági fejlécek, mobil-ergonómia, akadálymentesség — asztali Chrome és iPhone Safari profilon | 102 |
-| **Adatbázis** | Egy ember = egy csoport, kötelező indok, RLS-elszigetelés, teremváltás jogosultsága, öröklés | 46 |
+| **Bejelentkezve** (Playwright, élesben) | Minden oldal telefonon (nincs kilógás, nincs konzolhiba), alsó menü, a „Ma megyek" folyamat, térkép szimulált GPS-szel (nem pörög, nem ugrál) | 15 |
+| **Adatbázis** | Egy ember = egy csoport, kötelező indok, RLS-elszigetelés, teremváltás jogosultsága, öröklés, napi jelzés törlése | 49 |
 
 **Amire figyelj:** az E2E a regisztrációt a Supabase-hívás elfogásával játssza
 végig, ezért **nem hoz létre valódi fiókot** és nem küld e-mailt. Így a teszt
@@ -165,6 +167,26 @@ npx playwright install chromium webkit
 Az adatbázis-teszt egy eldobható, beágyazott Postgres-t indít — nem kell hozzá
 Docker, és nem nyúl az éles Supabase projekthez.
 
+### Bejelentkezett tesztek (élesben, tesztfiókkal)
+
+Egyszer be kell lépni a tesztfiókkal a megnyíló ablakban. A szkript a jelszót
+nem látja és nem tárolja, csak a munkamenetet menti el:
+
+```bash
+node scripts/teszt-belepes.mjs a
+```
+
+Utána bármikor futtatható:
+
+```bash
+npx playwright test --project=bejelentkezve --workers=1
+```
+
+- A tesztfiók **külön tesztcsapatban** legyen: a tesztek időpontot hoznak létre
+  és törölnek — de csak a sajátjukat.
+- A munkamenet a `tests/e2e/.auth/` mappában van. **Tokent tartalmaz**: gitignore-olva,
+  ne oszd meg. Minden futás elején megújul és visszamentődik, így nem jár le.
+
 ## Adatbázis-teszt
 
 A séma és az üzleti szabályok ellenőrizhetők egy eldobható, beágyazott
@@ -174,7 +196,7 @@ Postgres-en — nem kell hozzá Docker és nem nyúl a Supabase projektedhez:
 npm run test:db
 ```
 
-39 ellenőrzés fut le: hogy egy ember tényleg csak egy csoportban lehet, hogy a
+49 ellenőrzés fut le: hogy egy ember tényleg csak egy csoportban lehet, hogy a
 *nem* indok nélkül elbukik, hogy a kívülálló nem lát bele a csoportba, hogy a
 termet csak a főnök válthatja, és hogy a főnök kilépésekor a csapat öröklődik.
 
@@ -210,7 +232,7 @@ Az app publikus repóban van, ezért a védelem nem a kód titkosságára épül
   jelzi), a lokátor sima csatornára esik vissza. Ilyenkor a csatornát a csoport
   UUID-ja védi, amit kívülálló nem tud lekérdezni — de a szigorúbb védelemhez
   érdemes a házirendeket létrehozni.
-- A `npm run test:db` 46 ellenőrzése pont ezeket a szabályokat feszegeti:
+- A `npm run test:db` 49 ellenőrzése pont ezeket a szabályokat feszegeti:
   megpróbál más csoportjába belátni, indok nélkül nemet mondani, nem-főnökként
   termet váltani. Mind el kell bukjon.
 
@@ -235,7 +257,7 @@ src/
     login/           fekete beléptető kapu
     onboarding/      profilkép + testadatok
     app/             maga az alkalmazás (mind auth mögött)
-      page.tsx       Ma — napi kérdés, következő edzés, mai állás
+      page.tsx       Ma — mai edzés vagy „Ma megyek", napi kérdés, következő edzés
       plan/          időpontok, szavazás, közös idősávok
       map/           élő lokátor Leaflet térképen
       stats/         statisztikák

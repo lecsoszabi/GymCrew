@@ -170,7 +170,7 @@ export default function LoginForm() {
               className="field"
               value={name}
               onChange={(e) => setName(e.target.value)}
-              placeholder="Albert"
+              placeholder="Kovács Anna"
               autoComplete="name"
               required
             />

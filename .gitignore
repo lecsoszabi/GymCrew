@@ -15,3 +15,6 @@ blob-report
 
 # /brag videókimenet (nagy bináris fájlok)
 brag-output*/
+
+# tesztfiókok mentett munkamenetei (tokenek!) — soha ne kerüljenek a repóba
+tests/e2e/.auth/

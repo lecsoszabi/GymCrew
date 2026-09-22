@@ -52,6 +52,7 @@ export function VoteControls({
           value={reason}
           onChange={(e) => setReason(e.target.value)}
           placeholder="Pl. akkor még melóban vagyok, 19 után viszont ráérek."
+          aria-label="Miért nem jó ez az időpont?"
           maxLength={300}
           autoFocus
         />

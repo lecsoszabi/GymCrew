@@ -20,6 +20,7 @@ export function SessionRow({
   gyms,
   arrived,
   past,
+  defaultOpen,
 }: {
   session: TrainingSession;
   me: string;
@@ -29,8 +30,9 @@ export function SessionRow({
   gyms: Gym[];
   arrived: string[];
   past?: boolean;
+  defaultOpen?: boolean;
 }) {
-  const [open, setOpen] = useState(false);
+  const [open, setOpen] = useState(!!defaultOpen);
   const [switching, setSwitching] = useState(false);
   const [pickedGym, setPickedGym] = useState<string | null>(session.gym_id);
   const [deleting, setDeleting] = useState(false);

@@ -1,12 +1,5 @@
 import Link from "next/link";
-import {
-  getCheckIns,
-  getCrew,
-  getGyms,
-  getSessions,
-  getTodayCheckins,
-  nextSession,
-} from "@/lib/data";
+import { getCheckIns, getCrew, getGyms, getSessions, getTodayCheckins } from "@/lib/data";
 import { Avatar } from "@/components/avatar";
 import { Badge, EmptyState, SectionTitle } from "@/components/ui";
 import { DailyPrompt } from "@/components/daily-prompt";
@@ -14,6 +7,7 @@ import { TodayBoard } from "@/components/today-board";
 import { NextSessionCard } from "@/components/next-session-card";
 import GroupGate from "@/components/group-gate";
 import { todayHU } from "@/lib/date";
+import { dayStatus, pickSessions, votesWithDaily } from "@/lib/today";
 
 export const dynamic = "force-dynamic";
 export const metadata = { title: "Ma · GymCrew" };
@@ -26,24 +20,32 @@ export default async function DashboardPage() {
     return <GroupGate gyms={gyms} email={crew.email} />;
   }
 
-  const [{ sessions, votes }, todayCheckins, checkIns] = await Promise.all([
-    getSessions(crew.group.id),
-    getTodayCheckins(crew.group.id),
+  const group = crew.group;
+  const [{ sessions, votes }, todayCheckins, checkIns, gyms] = await Promise.all([
+    getSessions(group.id),
+    getTodayCheckins(group.id),
     getCheckIns(crew.members.map((m) => m.id), 30),
+    getGyms(),
   ]);
 
-  const upcoming = nextSession(sessions);
-  const myCheckin = todayCheckins.find((c) => c.user_id === crew.userId) ?? null;
-  const othersGoing = todayCheckins.filter((c) => c.user_id !== crew.userId && c.going);
+  const { today, next } = pickSessions(sessions);
+  const memberIds = crew.members.map((m) => m.id);
+  const status = (id: string) => dayStatus(id, today, votes, todayCheckins);
 
-  // A napi kérdés CSAK akkor jön elő, ha valaki más már jelezte ma, hogy megy,
-  // és én még nem válaszoltam.
-  const shouldAsk = !myCheckin && othersGoing.length > 0;
+  // A napi kérdés CSAK akkor jön elő, ha valaki más már jelezte, hogy ma megy,
+  // és én még semmit nem mondtam mára.
+  const othersGoing = crew.members.filter(
+    (m) => m.id !== crew.userId && status(m.id).state === "yes"
+  );
+  const shouldAsk = status(crew.userId).state === "none" && othersGoing.length > 0;
 
-  const askAbout = crew.members.filter((m) => m.id !== crew.userId);
-  const goingNames = othersGoing
-    .map((c) => crew.members.find((m) => m.id === c.user_id)?.display_name)
-    .filter(Boolean) as string[];
+  const cardMembers = crew.members.map((m) => ({
+    id: m.id,
+    name: m.display_name,
+    avatar: m.avatar_url,
+  }));
+  // Egy időpont más teremben is lehet, mint a csapaté.
+  const gymOf = (gymId: string | null) => gyms.find((g) => g.id === gymId) ?? group.gym;
 
   const myMonth = checkIns.filter(
     (c) => c.user_id === crew.userId && new Date(c.arrived_at) > new Date(Date.now() - 30 * 86_400_000)
@@ -53,13 +55,18 @@ export default async function DashboardPage() {
     <div className="space-y-7">
       <DailyPrompt
         open={shouldAsk}
-        goingNames={goingNames}
-        members={askAbout.map((m) => ({
-          id: m.id,
-          name: m.display_name,
-          avatar: m.avatar_url,
-          going: othersGoing.some((c) => c.user_id === m.id),
-        }))}
+        goingNames={othersGoing.map((m) => m.display_name)}
+        members={crew.members
+          .filter((m) => m.id !== crew.userId)
+          .map((m) => ({
+            id: m.id,
+            name: m.display_name,
+            avatar: m.avatar_url,
+            going: status(m.id).state === "yes",
+          }))}
+        todaySession={
+          today ? { startsAt: today.starts_at, gymName: gymOf(today.gym_id)?.name ?? null } : null
+        }
       />
 
       <header>
@@ -82,6 +89,22 @@ export default async function DashboardPage() {
       </header>
 
       <section>
+        <SectionTitle>{today ? "Mai edzés" : "Ma mész?"}</SectionTitle>
+        {today ? (
+          <NextSessionCard
+            session={today}
+            gym={gymOf(today.gym_id)}
+            members={cardMembers}
+            votes={votesWithDaily(today, memberIds, votes, todayCheckins)}
+            me={crew.userId}
+            arrived={checkIns.filter((c) => c.session_id === today.id).map((c) => c.user_id)}
+          />
+        ) : (
+          <TodayBoard me={crew.userId} members={cardMembers} checkins={todayCheckins} />
+        )}
+      </section>
+
+      <section>
         <SectionTitle
           action={
             <Link href="/app/plan" className="text-xs font-semibold text-accent">
@@ -89,47 +112,28 @@ export default async function DashboardPage() {
             </Link>
           }
         >
-          Következő edzés
+          {today ? "Utána" : "Következő edzés"}
         </SectionTitle>
 
-        {upcoming ? (
+        {next ? (
           <NextSessionCard
-            session={upcoming}
-            gym={crew.group.gym}
-            members={crew.members.map((m) => ({
-              id: m.id,
-              name: m.display_name,
-              avatar: m.avatar_url,
-            }))}
-            votes={votes.filter((v) => v.session_id === upcoming.id)}
+            session={next}
+            gym={gymOf(next.gym_id)}
+            members={cardMembers}
+            votes={votes.filter((v) => v.session_id === next.id)}
             me={crew.userId}
-            arrived={checkIns
-              .filter((c) => c.session_id === upcoming.id)
-              .map((c) => c.user_id)}
+            arrived={checkIns.filter((c) => c.session_id === next.id).map((c) => c.user_id)}
           />
         ) : (
           <EmptyState
-            title="Nincs betervezve edzés"
-            body="Javasolj egy időpontot, a többiek meg szavaznak rá."
+            title={today ? "Nincs más betervezve" : "Nincs betervezve edzés"}
+            body="Javasolj egy időpontot a következő napokra, a többiek meg szavaznak rá."
           >
-            <Link href="/app/plan" className="btn btn-primary">
+            <Link href="/app/plan" className="btn btn-ghost">
               Időpontot javaslok
             </Link>
           </EmptyState>
         )}
-      </section>
-
-      <section>
-        <SectionTitle>Mai állás</SectionTitle>
-        <TodayBoard
-          me={crew.userId}
-          members={crew.members.map((m) => ({
-            id: m.id,
-            name: m.display_name,
-            avatar: m.avatar_url,
-          }))}
-          checkins={todayCheckins}
-        />
       </section>
 
       {crew.members.length === 1 && (
@@ -138,7 +142,7 @@ export default async function DashboardPage() {
           <div className="card flex items-center gap-4 p-5">
             <Avatar url={crew.profile.avatar_url} name={crew.profile.display_name} size={44} />
             <div className="min-w-0 flex-1">
-              <p className="text-sm font-semibold">Hívd meg Kristófot és a többieket</p>
+              <p className="text-sm font-semibold">Hívd meg a többieket</p>
               <p className="mt-0.5 text-xs text-muted">
                 Meghívókód: <span className="font-mono text-accent">{crew.group.invite_code}</span>
               </p>

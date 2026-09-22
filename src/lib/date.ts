@@ -175,3 +175,47 @@ export function nextDateForWeekday(weekday: number, startMin: number): string {
   }
   return candidate.toISOString();
 }
+
+// ---------------------------------------------------------------------------
+// Egy budapesti nap határai UTC-ben
+// ---------------------------------------------------------------------------
+
+/** A budapesti falióra és az UTC eltérése egy adott pillanatban (ms). */
+function budapestOffsetMs(at: Date): number {
+  const parts = new Intl.DateTimeFormat("en-US", {
+    timeZone: TZ,
+    hourCycle: "h23",
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+    hour: "2-digit",
+    minute: "2-digit",
+    second: "2-digit",
+  }).formatToParts(at);
+  const get = (t: string) => Number(parts.find((p) => p.type === t)?.value);
+  return (
+    Date.UTC(get("year"), get("month") - 1, get("day"), get("hour"), get("minute"), get("second")) -
+    at.getTime()
+  );
+}
+
+/** Budapesti éjfél UTC-ben. Az eltérést UTC éjfélkor mérjük: az még az
+ *  óraátállítás (02:00/03:00) előtt van, tehát ugyanaz, mint éjfélkor. */
+function budapestMidnight(y: number, m: number, d: number): number {
+  const utcMidnight = Date.UTC(y, m - 1, d);
+  return utcMidnight - budapestOffsetMs(new Date(utcMidnight));
+}
+
+/** Egy budapesti nap (YYYY-MM-DD) kezdete és vége, ISO-ban. */
+export function dayRangeHU(day: string): { start: string; end: string } {
+  const [y, m, d] = day.split("-").map(Number);
+  return {
+    start: new Date(budapestMidnight(y, m, d)).toISOString(),
+    end: new Date(budapestMidnight(y, m, d + 1)).toISOString(),
+  };
+}
+
+/** Budapest szerint melyik napra esik egy időpont (YYYY-MM-DD). */
+export function dayOfHU(iso: string | Date): string {
+  return new Intl.DateTimeFormat("sv-SE", { timeZone: TZ }).format(new Date(iso));
+}
