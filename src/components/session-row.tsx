@@ -45,14 +45,24 @@ export function SessionRow({
   const cancelled = session.status === "cancelled";
 
   return (
-    <article className={`card overflow-hidden ${cancelled ? "opacity-60" : ""}`}>
+    // A lemondott időpont visszafogottabb, de a szövege ugyanúgy olvasható marad
+    // (WCAG kontraszt): átlátszóság helyett szaggatott keret, halvány, áthúzott
+    // időpont és szürke profilképek.
+    <article
+      className="card overflow-hidden"
+      style={cancelled ? { borderStyle: "dashed", background: "transparent" } : undefined}
+    >
       <button
         onClick={() => setOpen((o) => !o)}
         className="flex w-full items-center gap-3 p-4 text-left"
         aria-expanded={open}
       >
         <div className="min-w-0 flex-1">
-          <p className={`font-display text-lg font-bold leading-tight tabular-nums ${cancelled ? "line-through" : ""}`}>
+          <p
+            className={`font-display text-lg font-bold leading-tight tabular-nums ${
+              cancelled ? "text-muted line-through" : ""
+            }`}
+          >
             {formatWhen(session.starts_at)}
           </p>
           <p className="mt-0.5 truncate text-xs text-muted">
@@ -61,7 +71,7 @@ export function SessionRow({
           </p>
         </div>
 
-        <div className="flex shrink-0 -space-x-2">
+        <div className={`flex shrink-0 -space-x-2 ${cancelled ? "grayscale" : ""}`}>
           {members.slice(0, 4).map((m) => {
             const v = votes.find((x) => x.user_id === m.id);
             return (

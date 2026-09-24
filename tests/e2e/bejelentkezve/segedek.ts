@@ -55,6 +55,20 @@ export async function rest(context: BrowserContext) {
 }
 
 /**
+ * A bejelentkezett tesztek időpontokat hoznak létre és törölnek a fiók
+ * csapatában, ezért csak tesztfiókkal futhatnak: a fiók nevében benne kell
+ * lennie ennek a mintának (alapból „teszt”, az E2E_TESZTFIOK_MINTA felülírja).
+ */
+export const TESZTFIOK_MINTA = new RegExp(process.env.E2E_TESZTFIOK_MINTA ?? "teszt", "i");
+
+/** A munkamenet fiókjának megjelenített neve (üres, ha még nincs). */
+export async function fiokNeve(context: BrowserContext): Promise<string> {
+  const api = await rest(context);
+  const [me] = await api.call("GET", `profiles?select=display_name&id=eq.${api.userId}`);
+  return (me?.display_name as string | undefined) ?? "";
+}
+
+/**
  * Telefonos GPS szimulálása. Mint a valódi telefon: a figyelés indításakor
  * azonnal visszaad egy tárolt pozíciót, utána 150 ms-onként pár métert "remeg".
  * A hívásokat a window.__gps-be számolja.

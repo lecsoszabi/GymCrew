@@ -9,9 +9,13 @@
  *   node scripts/teszt-belepes.mjs b
  *
  * A mentett fájl tokent tartalmaz: gitignore-olva van, ne oszd meg.
+ *
+ * Csak tesztfiókot ment el (a neve tartalmazza: „teszt”): a bejelentkezett
+ * tesztek időpontokat hoznak létre és törölnek, a saját fiókodon ne fussanak.
  */
 import { chromium } from "@playwright/test";
 import { mkdirSync } from "node:fs";
+import { TESZTFIOK_MINTA, fiokNeve } from "../tests/e2e/bejelentkezve/segedek.ts";
 
 const nev = process.argv[2];
 if (!["a", "b"].includes(nev)) {
@@ -33,6 +37,14 @@ console.log("  Ha bent vagy, a szkript magától menti a munkamenetet. (Legfelje
 await page.waitForURL((url) => url.pathname.startsWith("/app") || url.pathname.startsWith("/onboarding"), {
   timeout: 5 * 60_000,
 });
+const fiok = await fiokNeve(context);
+if (!TESZTFIOK_MINTA.test(fiok)) {
+  console.error(`✗ Ez nem tesztfiók („${fiok || "még nincs neve"}”), ezért nem mentettem el a munkamenetet.`);
+  console.error("  A bejelentkezett tesztek időpontokat hoznak létre és törölnek, a saját fiókodon ne fussanak.");
+  console.error(`  Futtasd újra, és lépj be a(z) "${nev}" tesztfiókkal.`);
+  await browser.close();
+  process.exit(1);
+}
 await context.storageState({ path: hova });
-console.log(`✓ Munkamenet mentve: ${hova}`);
+console.log(`✓ Munkamenet mentve: ${hova} (${fiok})`);
 await browser.close();

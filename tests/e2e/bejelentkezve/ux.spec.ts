@@ -1,6 +1,8 @@
 import AxeBuilder from "@axe-core/playwright";
 import { expect, test } from "@playwright/test";
 import { kisCelpontok } from "../kozos";
+import { MUNKAMENET_A } from "./munkamenet";
+import { rest } from "./segedek";
 
 /*
  * UI/UX alapok minden bejelentkezett oldalon, telefonon: akadálymentesség
@@ -10,6 +12,40 @@ import { kisCelpontok } from "../kozos";
 test.use({ reducedMotion: "reduce" });
 
 const WCAG = ["wcag2a", "wcag2aa", "wcag21a", "wcag21aa"];
+
+// Egy lemondott, közelgő időpont a tesztcsapatban: a Terv visszafogottabban
+// mutatja, de annak is olvashatónak kell lennie. A végén töröljük.
+let lemondott: string | null = null;
+
+test.beforeAll(async ({ browser }) => {
+  // A süti frissítéséhez előbb egy oldalbetöltés kell, utána a REST-hívás.
+  const context = await browser.newContext({ storageState: MUNKAMENET_A });
+  const page = await context.newPage();
+  await page.goto("/app");
+  const api = await rest(context);
+  const [me] = await api.call("GET", `profiles?select=group_id&id=eq.${api.userId}`);
+  if (!me?.group_id) throw new Error("A tesztfióknak csapatban kell lennie (külön tesztcsapatban!).");
+  const [session] = await api.call("POST", "sessions", {
+    group_id: me.group_id,
+    starts_at: new Date(Date.now() + 3 * 86_400_000).toISOString(),
+    created_by: api.userId,
+    status: "cancelled",
+  });
+  lemondott = session.id;
+  await context.storageState({ path: MUNKAMENET_A });
+  await context.close();
+});
+
+test.afterAll(async ({ browser }) => {
+  if (!lemondott) return;
+  const context = await browser.newContext({ storageState: MUNKAMENET_A });
+  const page = await context.newPage();
+  await page.goto("/app");
+  const api = await rest(context);
+  await api.call("DELETE", `sessions?id=eq.${lemondott}`);
+  await context.storageState({ path: MUNKAMENET_A });
+  await context.close();
+});
 
 for (const ut of ["/app", "/app/plan", "/app/map", "/app/stats", "/app/group", "/app/profile", "/reset-password"]) {
   test(`${ut}: akadálymentes, és minden koppintható elem legalább 44 px`, async ({ page }) => {

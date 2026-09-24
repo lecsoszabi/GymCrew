@@ -1,5 +1,6 @@
 import { expect, test as setup } from "@playwright/test";
 import { MUNKAMENET_A } from "./munkamenet";
+import { TESZTFIOK_MINTA, fiokNeve } from "./segedek";
 import { CONSENT_COOKIE, LEGAL_VERSION } from "../../../src/lib/legal";
 
 /*
@@ -14,6 +15,13 @@ setup("munkamenet frissítése", async ({ page, context }) => {
     page,
     "lejárt a mentett munkamenet — futtasd: node scripts/teszt-belepes.mjs a"
   ).not.toHaveURL(/\/login/);
+  // Csak tesztfiókkal: különben a tesztek valaki valódi csapatában hoznának
+  // létre és törölnének időpontokat.
+  const nev = await fiokNeve(context);
+  expect(
+    nev,
+    `a mentett munkamenet nem tesztfiókhoz tartozik („${nev}”), lépj be a tesztfiókkal: node scripts/teszt-belepes.mjs a`
+  ).toMatch(TESZTFIOK_MINTA);
   // A süti-tájékoztató ne takarja a tesztelt felületet.
   const url = new URL(page.url());
   await context.addCookies([

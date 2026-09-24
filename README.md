@@ -239,6 +239,10 @@ npx playwright test --project=bejelentkezve --workers=1
 
 - A tesztfiók **külön tesztcsapatban** legyen: a tesztek időpontot hoznak létre
   és törölnek, de csak a sajátjukat.
+- **Csak tesztfiókkal fut:** a fiók nevében benne kell lennie, hogy „teszt”
+  (például „claude teszt1”). Más fiók munkamenetét a belépő szkript el sem menti,
+  a tesztcsomag pedig az első lépésben leáll vele. A minta az `E2E_TESZTFIOK_MINTA`
+  változóval írható át.
 - A munkamenet a `tests/e2e/.auth/` mappában van. **Tokent tartalmaz**: gitignore-olva,
   ne oszd meg. Minden futás elején megújul és visszamentődik, így nem jár le.
 

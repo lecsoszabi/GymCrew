@@ -15,6 +15,8 @@ The surface is the web app in a phone browser. Drive it with Playwright scripts
   and grep the live CSS/HTML for the change before driving it).
 - Local: `preview_start` with the `gymcrew-e2e` config (Next dev on :3100).
 - Logged-in pages need the test session `tests/e2e/.auth/a.json` (never commit it).
+  It must belong to a test account (display name contains „teszt”); the setup
+  project stops otherwise. Never drive or mutate anything with a non-test session.
   Refresh it against production first:
   `E2E_BASE_URL=https://gymcrew.hu npx playwright test --project=munkamenet`,
   and save `ctx.storageState({ path })` at the end of every script.
